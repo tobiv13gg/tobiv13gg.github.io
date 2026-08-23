@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>idleTT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@500;600;700&family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #08090b;
+            --panel-bg: #131519;
+            --panel-bg-alt: #0e1013;
+            --accent-color: #97fb00;
+            --accent-color-dark: #6ec400;
+            --accent-pink: #ff2e92;
+            --accent-cyan: #1fd6f2;
+            --accent-gold: #ffc94d;
+            --danger-color: #ff3b3b;
+            --text-color: #f2f4f2;
+            --text-muted: #838d94;
+            --border-color: #24282d;
+            --font-display: 'Bebas Neue', 'Rajdhani', sans-serif;
+            --font-body: 'Rajdhani', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-hud: 'Chakra Petch', 'Rajdhani', monospace;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001ms !important;
+            }
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-weight: 500;
+            background-color: var(--bg-color);
+            background-image:
+                repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.012) 0px, rgba(255, 255, 255, 0.012) 1px, transparent 1px, transparent 3px),
+                radial-gradient(ellipse 900px 500px at 15% -10%, rgba(151, 251, 0, 0.10), transparent 60%),
+                radial-gradient(ellipse 900px 500px at 85% 110%, rgba(255, 46, 146, 0.10), transparent 60%);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 420px;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-top: 3px solid var(--accent-color);
+            border-radius: 4px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+
+        .tab-nav {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: var(--text-muted);
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 10px 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-color);
+        }
+
+        .tab-btn.active[data-tab="main"],
+        .tab-btn.active[data-tab="upgrades"] {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+            text-shadow: 0 0 10px rgba(151, 251, 0, 0.5);
+        }
+
+        .tab-btn.active[data-tab="businesses"] {
+            color: var(--accent-pink);
+            border-bottom-color: var(--accent-pink);
+            text-shadow: 0 0 10px rgba(255, 46, 146, 0.5);
+        }
+
+        .tab-btn.active[data-tab="reset"] {
+            color: var(--danger-color);
+            border-bottom-color: var(--danger-color);
+            text-shadow: 0 0 10px rgba(255, 59, 59, 0.5);
+        }
+
+        .tab-btn.active[data-tab="magic"] {
+            color: var(--accent-cyan);
+            border-bottom-color: var(--accent-cyan);
+            text-shadow: 0 0 10px rgba(31, 214, 242, 0.5);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-box {
+            position: relative;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 12px;
+            text-align: center;
+            transition: transform 0.15s ease, border-color 0.15s ease;
+        }
+
+        .stat-box::before {
+            content: "";
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 6px;
+            height: 6px;
+            border-top: 1px solid var(--text-muted);
+            border-left: 1px solid var(--text-muted);
+            opacity: 0.6;
+        }
+
+        .stat-box:hover {
+            transform: translateY(-1px);
+            border-color: #363c43;
+        }
+
+        .stat-box .stat-value {
+            font-family: var(--font-hud);
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: var(--text-color);
+        }
+
+        .stat-box .stat-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .stat-box.wide {
+            grid-column: 1 / -1;
+        }
+
+        .stat-box .stat-value-text {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            letter-spacing: 0.3px;
+        }
+
+        .exp-bar-track {
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            margin: 6px 0;
+        }
+
+        .exp-bar-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--accent-color-dark), var(--accent-color));
+            box-shadow: 0 0 6px rgba(151, 251, 0, 0.6);
+            transition: width 0.3s ease;
+        }
+
+        #businesses-tab-header {
+            text-align: center;
+            font-family: var(--font-display);
+            color: var(--accent-pink);
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            text-shadow: 0 0 10px rgba(255, 46, 146, 0.4);
+        }
+
+        #businesses-container {
+            max-height: 420px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        #businesses-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #businesses-container::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        #businesses-container .upgrade-card:hover {
+            border-left-color: var(--accent-cyan);
+            background-color: rgba(31, 214, 242, 0.05);
+        }
+
+        #businesses-container .upgrade-btn {
+            background: linear-gradient(180deg, var(--accent-cyan) 0%, #17aecb 100%);
+            color: #08090b;
+        }
+
+        #businesses-container .upgrade-btn:hover:not(:disabled) {
+            filter: brightness(1.08);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 14px rgba(31, 214, 242, 0.5);
+        }
+
+        .upgrade-card.owned {
+            opacity: 0.55;
+            border-left-color: var(--accent-pink) !important;
+        }
+
+        .upgrade-btn.owned-btn {
+            background-color: transparent !important;
+            border: 1px solid var(--accent-pink) !important;
+            color: var(--accent-pink) !important;
+            cursor: default !important;
+            box-shadow: none !important;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 18px;
+            position: relative;
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            display: inline-block;
+            color: var(--text-color);
+            margin: 0 0 10px 0;
+            font-size: 3rem;
+            letter-spacing: 4px;
+            transform: skewX(-6deg);
+            text-shadow: 0 0 2px rgba(255, 255, 255, 0.4);
+        }
+
+        h1 .logo-accent {
+            color: var(--accent-color);
+            animation: neon-flicker 5s infinite ease-in-out;
+        }
+
+        @keyframes neon-flicker {
+            0%, 88%, 92%, 96%, 100% {
+                text-shadow: 0 0 18px rgba(151, 251, 0, 0.55), 0 0 2px rgba(151, 251, 0, 0.9);
+            }
+            90%, 94% {
+                text-shadow: 0 0 4px rgba(151, 251, 0, 0.25);
+            }
+        }
+
+        header::after {
+            content: "";
+            display: block;
+            width: 90px;
+            height: 4px;
+            margin: 0 auto;
+            background: linear-gradient(90deg, var(--accent-color), var(--accent-pink));
+            transform: skewX(-25deg);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            margin: 10px 0 0 0;
+        }
+
+        .stats-panel {
+            position: relative;
+            text-align: center;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border-color);
+            padding: 18px 15px;
+            border-radius: 4px;
+        }
+
+        .stats-panel::before,
+        .stats-panel::after {
+            content: "";
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--accent-color);
+            filter: drop-shadow(0 0 4px rgba(151, 251, 0, 0.6));
+        }
+
+        .stats-panel::before {
+            top: -1px;
+            left: -1px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .stats-panel::after {
+            bottom: -1px;
+            right: -1px;
+            border-left: none;
+            border-top: none;
+        }
+
+        .score-display {
+            font-family: var(--font-hud);
+            font-weight: 700;
+            font-size: 2.6rem;
+            letter-spacing: 1px;
+            color: var(--text-color);
+            margin-bottom: 2px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
+        }
+
+        .income-display {
+            font-family: var(--font-hud);
+            color: var(--accent-color);
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .double-income-badge {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: rgba(255, 46, 146, 0.15);
+            border: 1px solid var(--accent-pink);
+            color: var(--accent-pink);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            animation: badge-pulse 1.8s infinite ease-in-out;
+        }
+
+        @keyframes badge-pulse {
+            0%, 100% { box-shadow: 0 0 4px rgba(255, 46, 146, 0.25); }
+            50% { box-shadow: 0 0 12px rgba(255, 46, 146, 0.7); }
+        }
+
+        .reset-btn {
+            border: none;
+            padding: 10px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: filter 0.15s, box-shadow 0.15s;
+        }
+
+        .btn-danger-solid:hover:not(:disabled),
+        .btn-gold-solid:hover:not(:disabled) {
+            filter: brightness(1.08);
+        }
+
+        .btn-danger-solid:hover:not(:disabled) {
+            box-shadow: 0 0 14px rgba(255, 59, 59, 0.5);
+        }
+
+        .btn-gold-solid:hover:not(:disabled) {
+            box-shadow: 0 0 14px rgba(255, 201, 77, 0.5);
+        }
+
+        .upgrades-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .upgrade-card {
+            background-color: var(--panel-bg-alt);
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--border-color);
+            border-radius: 4px;
+            clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.15s ease, border-left-color 0.15s ease, background-color 0.15s ease;
+        }
+
+        .upgrade-card:hover {
+            border-left-color: var(--accent-color);
+            background-color: rgba(151, 251, 0, 0.04);
+            transform: translateX(2px);
+        }
+
+        .upgrade-info {
+            flex-grow: 1;
+            margin-right: 15px;
+        }
+
+        .upgrade-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: 0.3px;
+            margin-bottom: 4px;
+        }
+
+        .upgrade-details {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(180deg, var(--accent-color) 0%, var(--accent-color-dark) 100%);
+            color: #08090b;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 3px;
+            font-family: var(--font-body);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            min-width: 100px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+            transition: all 0.15s;
+        }
+
+        .upgrade-btn:hover:not(:disabled) {
+            filter: brightness(1.08);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 14px rgba(151, 251, 0, 0.5);
+        }
+
+        .upgrade-btn:disabled {
+            background: #22262b;
+            color: #565d64;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .magic-placeholder {
+            text-align: center;
+            padding: 50px 15px;
+        }
+
+        .magic-placeholder-icon {
+            font-size: 2.6rem;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 12px rgba(31, 214, 242, 0.6));
+            animation: magic-float 3.5s infinite ease-in-out;
+        }
+
+        @keyframes magic-float {
+            0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 12px rgba(31, 214, 242, 0.6)); }
+            50% { transform: translateY(-6px); filter: drop-shadow(0 0 18px rgba(255, 46, 146, 0.6)); }
+        }
+
+        .magic-placeholder-title {
+            font-family: var(--font-display);
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-pink));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 1.6rem;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .magic-placeholder-text {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .reset-tab-intro {
+            text-align: center;
+            padding: 4px 0 20px;
+        }
+
+        .reset-tab-intro h3 {
+            color: var(--danger-color);
+            font-family: var(--font-display);
+            letter-spacing: 2px;
+            margin: 0 0 6px;
+        }
+
+        .reset-tab-intro p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .reset-panel {
+            border-radius: 4px;
+            padding: 15px;
+            text-align: left;
+            margin-bottom: 15px;
+        }
+
+        .reset-panel:last-child {
+            margin-bottom: 0;
+        }
+
+        .reset-panel-title {
+            font-family: var(--font-display);
+            letter-spacing: 1.5px;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .reset-panel-desc {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+
+        .reset-panel--danger {
+            background: rgba(255, 59, 59, 0.08);
+            border: 1px solid var(--danger-color);
+        }
+
+        .reset-panel--danger .reset-panel-title {
+            color: var(--danger-color);
+        }
+
+        .reset-panel--prestige {
+            background: rgba(255, 201, 77, 0.08);
+            border: 1px solid var(--accent-gold);
+        }
+
+        .reset-panel--prestige .reset-panel-title {
+            color: var(--accent-gold);
+            text-shadow: 0 0 10px rgba(255, 201, 77, 0.4);
+        }
+
+        .prestige-checklist {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+            padding: 8px 10px;
+            margin-bottom: 12px;
+            font-size: 0.75rem;
+        }
+
+        .prestige-checklist div {
+            padding: 2px 0;
+            color: var(--text-muted);
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        .btn-danger-solid {
+            background: linear-gradient(180deg, #ff5b5b 0%, var(--danger-color) 100%);
+            color: #08090b;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-gold-solid {
+            background: linear-gradient(180deg, #ffd876 0%, var(--accent-gold) 100%);
+            color: #08090b;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        }
+
+        .btn-locked {
+            background: var(--text-muted);
+            color: #08090b;
+            cursor: not-allowed;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.visible {
+            display: flex;
+        }
+
+        .modal-box {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-top: 3px solid var(--danger-color);
+            border-radius: 4px;
+            padding: 25px;
+            max-width: 350px;
+            text-align: center;
+            font-family: var(--font-body);
+        }
+
+        .modal-title {
+            margin-top: 0;
+            font-weight: 700;
+            font-family: var(--font-display);
+            letter-spacing: 1.5px;
+            color: var(--danger-color);
+        }
+
+        .modal-message {
+            margin: 10px 0 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn-modal {
+            border: none;
+            padding: 8px 18px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .btn-modal-cancel {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-modal-cancel:hover {
+            color: var(--text-color);
+            border-color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <header>
+        <h1>idle<span class="logo-accent">TT</span></h1>
+        <p class="subtitle" id="subtitle-text">Welcome, player. Gotta keep grinding :meow:</p>
+    </header>
+
+    <div class="tab-nav">
+        <button class="tab-btn active" data-tab="main" onclick="switchTab('main')">Stats</button>
+        <button class="tab-btn" data-tab="upgrades" onclick="switchTab('upgrades')">Upgrades</button>
+        <button class="tab-btn" data-tab="businesses" onclick="switchTab('businesses')">Businesses</button>
+        <button class="tab-btn" data-tab="magic" id="tab-btn-magic" onclick="switchTab('magic')" style="display:none;">Magic</button>
+        <button class="tab-btn" data-tab="reset" onclick="switchTab('reset')">Reset</button>
+    </div>
+
+    <div class="tab-content active" id="tab-main">
+        <div class="stats-panel">
+            <div class="score-display" id="points-display">0.0</div>
+            <div class="income-display" id="income-display">+0.10 TT/s</div>
+            <div class="double-income-badge" id="double-income-badge" style="display:none;">x2 INCOME ACTIVE</div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-box wide">
+                <div class="stat-value" id="stat-level">Lv. 1</div>
+                <div class="exp-bar-track"><div class="exp-bar-fill" id="exp-bar-fill"></div></div>
+                <div class="stat-value-text" id="stat-exp">0 / 0</div>
+                <div class="stat-label">Experience</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="stat-trailer-tier">MK0 / 14</div>
+                <div class="stat-label">Trailer Tier</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="stat-businesses-owned">0 / 0</div>
+                <div class="stat-label">Businesses Owned</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="stat-total-earned">0</div>
+                <div class="stat-label">Earned (Since Reset)</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="stat-play-time">00:00:00</div>
+                <div class="stat-label">Play Time</div>
+            </div>
+            <div class="stat-box wide">
+                <div class="stat-value" id="stat-lifetime-earnings">0</div>
+                <div class="stat-label">Total Lifetime Earnings</div>
+            </div>
+            <div class="stat-box wide">
+                <div class="stat-value-text" id="stat-next-goal">-</div>
+                <div class="stat-label">Next Business Goal</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content" id="tab-upgrades">
+        <div class="upgrades-list" id="upgrades-container">
+            <!-- Upgrades generated dynamically by JS -->
+        </div>
+    </div>
+
+    <div class="tab-content" id="tab-businesses">
+        <div id="businesses-tab-header">BUSINESSES</div>
+        <div class="upgrades-list" id="businesses-container">
+            <!-- Businesses generated dynamically by JS -->
+        </div>
+    </div>
+
+    <div class="tab-content" id="tab-magic">
+        <div class="magic-placeholder">
+            <div class="magic-placeholder-icon">✨</div>
+            <div class="magic-placeholder-title">MAGIC</div>
+            <p class="magic-placeholder-text">Something new unlocked by reaching Prestige 1.<br>Coming soon.</p>
+        </div>
+    </div>
+
+    <div class="tab-content" id="tab-reset">
+        <div class="reset-tab-intro">
+            <h3>Dangerous Zone</h3>
+            <p>Choose your reset method carefully.</p>
+        </div>
+
+        <div class="reset-panel reset-panel--danger">
+            <div class="reset-panel-title">Hard Reset</div>
+            <div class="reset-panel-desc">Clears EVERYTHING. No exceptions. All data gone.</div>
+            <button class="reset-btn btn-block btn-danger-solid" onclick="requestHardReset()">Hard Reset</button>
+        </div>
+
+        <div class="reset-panel reset-panel--prestige">
+            <div class="reset-panel-title">Prestige</div>
+            <div class="reset-panel-desc">Soft reset. Keep lifetime earnings. Requires all conditions met:</div>
+            <div class="prestige-checklist">
+                <div id="prestige-check-lv100">❌ Level 100</div>
+                <div id="prestige-check-mk14">❌ Trailer MK14</div>
+                <div id="prestige-check-biz73">❌ All 73 Businesses</div>
+            </div>
+            <button id="prestige-btn" class="reset-btn btn-block btn-locked" disabled onclick="requestPrestige()">Prestige (locked)</button>
+        </div>
+    </div>
+</div>
+
+<div id="reset-modal-overlay" class="modal-overlay">
+    <div class="modal-box">
+        <p id="reset-modal-type" class="modal-title">HARD RESET</p>
+        <p id="reset-modal-message" class="modal-message">All data will be permanently deleted. This cannot be undone.</p>
+        <div class="modal-actions">
+            <button id="reset-modal-confirm-btn" class="btn-modal btn-danger-solid">HARD RESET</button>
+            <button class="btn-modal btn-modal-cancel" onclick="cancelReset()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    'use strict';
+
+    const DEFAULT_BASE_INCOME = 0.1;
+
+    function createDefaultGameState() {
+        return {
+            points: 0,
+            baseIncome: DEFAULT_BASE_INCOME,
+            multiplier: 1,
+            totalEarned: 0,
+            playTimeSeconds: 0,
+            doubleIncomeExpiryPlayTime: 0,
+            level: 1,
+            exp: 0
+        };
+    }
+
+    let game = createDefaultGameState();
+
+    function getExpRequiredForLevel(level) {
+        return Math.floor(50 * Math.pow(level, 1.5));
+    }
+
+    function addExp(amount) {
+        if (!isFinite(amount) || amount <= 0) return;
+        game.exp += amount;
+
+        let requiredForNext = getExpRequiredForLevel(game.level);
+        while (game.exp >= requiredForNext) {
+            game.exp -= requiredForNext;
+            game.level++;
+            requiredForNext = getExpRequiredForLevel(game.level);
+        }
+    }
+
+    let lifetimeEarnings = 0;
+
+    let prestigeCount = 0;
+
+    const trailerCapacities = [400, 475, 600, 775, 1000, 1500, 2200, 2500, 2750, 3000, 3500, 5000, 8500, 9000];
+    const CAPACITY_INCOME_SCALE = 0.000275;
+
+    const BUSINESS_INCOME_RATE = 0.000275;
+
+    const LEVEL_INCOME_BONUS_RATE = 0.0075;
+
+    const EXP_PURCHASE_BONUS_RATE = 0.01;
+
+    const DOUBLE_INCOME_DURATION_SECONDS = 24 * 60 * 60;
+
+    const LEGACY_UPGRADE_ID_ALIASES = {
+        'double_xp_token': 'double_income_token'
+    };
+
+    let upgrades = [
+        {
+            id: 'trailer_mk',
+            baseName: 'Upgrade your trailer',
+            description: 'Upgrade your trailer to the next tier for more cargo capacity, which boosts your passive income',
+            baseCost: 50,
+            costMultiplier: 1.6,
+            level: 0,
+            maxLevel: 14,
+            type: 'tier'
+        },
+        {
+            id: 'double_income_token',
+            name: 'Double Income Token',
+            description: 'Doubles ALL income, from every current and future source, for 24 hours of play time. Since EXP is earned from income, this also doubles your leveling speed. Buying another token while one is active extends the remaining duration instead of wasting it.',
+            baseCost: 75000,
+            level: 0, 
+            type: 'consumable_double_income'
+        }
+    ];
+
+    let businesses = [
+        { id: 'biz_wenger_institute', name: 'Wenger Institute', price: 15000, owned: false },
+        { id: 'biz_la_vaca_loco', name: 'La Vaca Loco', price: 150000, owned: false },
+        { id: 'biz_vespucci_movie_masks', name: 'Vespucci Movie Masks', price: 150000, owned: false },
+        { id: 'biz_sandy_shores_liquor', name: 'Sandy Shores Liquor', price: 250000, owned: false },
+        { id: 'biz_pala_springs_tramway', name: 'Pala Springs Aerial Tramway', price: 250000, owned: false },
+        { id: 'biz_spokes_bike_rental', name: "Mr. Spoke's Bike Rental", price: 250000, owned: false },
+        { id: 'biz_4_integrity_way', name: '4 Integrity Way', price: 300000, owned: false },
+        { id: 'biz_hornys_burgers', name: "Horny's Burgers", price: 300000, owned: false },
+        { id: 'biz_hookies', name: 'Hookies', price: 300000, owned: false },
+        { id: 'biz_caseys_diner', name: "Casey's Diner", price: 350000, owned: false },
+        { id: 'biz_you_tool_sandy_shores', name: 'You Tool Sandy Shores', price: 500000, owned: false },
+        { id: 'biz_grandmas_house', name: "Grandma's House", price: 500000, owned: false },
+        { id: 'biz_korean_plaza', name: 'Korean Plaza', price: 750000, owned: false },
+        { id: 'biz_barracuda_cafe', name: 'Barracuda Cafe', price: 750000, owned: false },
+        { id: 'biz_yellowjack', name: 'Yellowjack', price: 950000, owned: false },
+        { id: 'biz_larss_elboo', name: 'Larss & Elboö', price: 1500000, owned: false },
+        { id: 'biz_los_santos_docks', name: 'Los Santos Docks', price: 1500000, owned: false },
+        { id: 'biz_bishops_chicken', name: 'Bishops Chicken', price: 1500000, owned: false },
+        { id: 'biz_harmony_gas_station', name: 'Harmony Gas Station', price: 2500000, owned: false },
+        { id: 'biz_jetsam_terminal', name: 'Jetsam Terminal', price: 3000000, owned: false },
+        { id: 'biz_jetsam_paleto_bay', name: 'JetSam Paleto Bay', price: 3500000, owned: false },
+        { id: 'biz_banner_hotel_spa', name: 'Banner Hotel & Spa', price: 4000000, owned: false },
+        { id: 'biz_catfish_view', name: 'Catfish View', price: 4000000, owned: false },
+        { id: 'biz_parsons_rehab', name: 'Parsons Rehabilitation Center', price: 4500000, owned: false },
+        { id: 'biz_union_grain_grapeseed', name: 'Union Grain Inc Grapeseed', price: 4500000, owned: false },
+        { id: 'biz_sisyphus_theater', name: 'Sisyphus Theater', price: 5000000, owned: false },
+        { id: 'biz_alphamail_couriers_lsia', name: 'Alphamail Couriers LSIA', price: 6000000, owned: false },
+        { id: 'biz_medical_center_parking', name: 'Medical Center Parking Garage', price: 6000000, owned: false },
+        { id: 'biz_venetian', name: 'Venetian', price: 7500000, owned: false },
+        { id: 'biz_maze_bank_arena', name: 'Maze Bank Arena', price: 8000000, owned: false },
+        { id: 'biz_fridgit_co', name: 'Fridgit Co.', price: 8000000, owned: false },
+        { id: 'biz_rebel_radio', name: 'Rebel Radio', price: 9000000, owned: false },
+        { id: 'biz_clucking_bell_co', name: 'Clucking Bell Co.', price: 11000000, owned: false },
+        { id: 'biz_millars_boat_shop', name: 'Millars Boat Shop', price: 12500000, owned: false },
+        { id: 'biz_opium_nights_hotel', name: 'Opium Nights Hotel', price: 17000000, owned: false },
+        { id: 'biz_bristols_storage', name: 'Bristols Storage', price: 17500000, owned: false },
+        { id: 'biz_davis_quartz_quarry', name: 'Davis Quartz Quarry', price: 18000000, owned: false },
+        { id: 'biz_pacific_bluffs_country_club', name: 'Pacific Bluffs Country Club', price: 18000000, owned: false },
+        { id: 'biz_marina_beach_mansion', name: 'Marina Beach Mansion', price: 20000000, owned: false },
+        { id: 'biz_jonny_tung', name: 'Jonny Tung', price: 25000000, owned: false },
+        { id: 'biz_vanilla_unicorn', name: 'Vanilla Unicorn', price: 30000000, owned: false },
+        { id: 'biz_bahama_mamas', name: 'Bahama Mamas', price: 32000000, owned: false },
+        { id: 'biz_ko_rtz', name: 'KO RTZ', price: 35000000, owned: false },
+        { id: 'biz_fort_zancudo', name: 'Fort Zancudo', price: 35000000, owned: false },
+        { id: 'biz_lt_weld_supply_co', name: 'LT Weld Supply Co', price: 37000000, owned: false },
+        { id: 'biz_sandy_shores_airfield', name: 'Sandy Shores Airfield', price: 47000000, owned: false },
+        { id: 'biz_diamond_casino_resort', name: 'The Diamond Casino & Resort', price: 60000000, owned: false },
+        { id: 'biz_aircraft_carrier', name: 'Aircraft Carrier', price: 65000000, owned: false },
+        { id: 'biz_pier_400', name: 'Pier 400', price: 80000000, owned: false },
+        { id: 'biz_pacific_allied_shipyard', name: 'Pacific Allied Shipyard', price: 80000000, owned: false },
+        { id: 'biz_raven_slaughterhouse', name: 'Raven Slaughterhouse', price: 80000000, owned: false },
+        { id: 'biz_train_yard_mirror_park', name: 'Train Yard - Mirror Park', price: 80000000, owned: false },
+        { id: 'biz_juniper_shipping_yard', name: 'Juniper Shipping Yard', price: 80000000, owned: false },
+        { id: 'biz_train_yard_la_mesa', name: 'Train Yard - La Mesa', price: 80000000, owned: false },
+        { id: 'biz_train_yard_ls_docks', name: 'Train Yard - LS Docks', price: 80000000, owned: false },
+        { id: 'biz_train_yard_ls_terminal', name: 'Train Yard - LS Terminal', price: 80000000, owned: false },
+        { id: 'biz_train_yard_davis_quartz', name: 'Train Yard - Davis Quartz', price: 80000000, owned: false },
+        { id: 'biz_train_yard_sandy_shores', name: 'Train Yard - Sandy Shores', price: 80000000, owned: false },
+        { id: 'biz_train_yard_grapeseed', name: 'Train Yard - Grapeseed', price: 80000000, owned: false },
+        { id: 'biz_train_yard_paleto_bay', name: 'Train Yard - Paleto Bay', price: 80000000, owned: false },
+        { id: 'biz_palmer_taylor_power_station', name: 'Palmer-Taylor Power Station', price: 80000000, owned: false },
+        { id: 'biz_cayo_perico', name: 'Cayo Perico', price: 80000000, owned: false },
+        { id: 'biz_walker_logistics', name: 'Walker Logistics', price: 120000000, owned: false },
+        { id: 'biz_lsia', name: 'Los Santos International Airport', price: 125000000, owned: false },
+        { id: 'biz_collins_petrochemical_corp', name: 'Collins Petrochemical Corp.', price: 125000000, owned: false },
+        { id: 'biz_roxwood_power_plant', name: 'Roxwood Power Plant', price: 125000000, owned: false },
+        { id: 'biz_mt_chiliad_base', name: 'Mt. Chiliad Base', price: 200000000, owned: false },
+        { id: 'biz_del_perro_pier', name: 'Del Perro Pier', price: 350000000, owned: false },
+        { id: 'biz_ron_alternates_wind_farm', name: 'Ron Alternates Wind Farm', price: 350000000, owned: false },
+        { id: 'biz_pacific_standard_bank', name: 'Pacific Standard Bank', price: 500000000, owned: false },
+        { id: 'biz_playboy_mansion', name: 'Playboy Mansion', price: 550000000, owned: false },
+        { id: 'biz_tongva_hills_vineyard', name: 'Tongva Hills Vineyard', price: 600000000, owned: false },
+        { id: 'biz_satn', name: 'San Andreas Telecom Network', price: 750000000, owned: false }
+    ];
+
+    let memoryFallback = null;
+    const SAVE_KEY = 'idle_tt_save';
+
+    const SAVE_SALT = 'idleTT-v1-9f3ac2';
+
+    function computeChecksum(dataObj) {
+        const str = JSON.stringify(dataObj) + SAVE_SALT;
+        let hash = 5381;
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) + hash + str.charCodeAt(i)) >>> 0;
+        }
+        return hash.toString(36);
+    }
+
+    function sanitizeNumber(value, fallback, min = 0, max = Number.MAX_SAFE_INTEGER) {
+        if (typeof value !== 'number' || !isFinite(value) || value < min || value > max) {
+            return fallback;
+        }
+        return value;
+    }
+
+    async function saveGame() {
+        const saveData = {
+            game: game,
+            lifetimeEarnings: lifetimeEarnings,
+            prestigeCount: prestigeCount,
+            upgradesLevels: upgrades.map(u => ({ id: u.id, level: u.level })),
+            ownedBusinesses: businesses.filter(b => b.owned).map(b => b.id)
+        };
+        const payload = {
+            data: saveData,
+            checksum: computeChecksum(saveData)
+        };
+        const serialized = JSON.stringify(payload);
+
+        if (window.storage && typeof window.storage.set === 'function') {
+            try {
+                await window.storage.set(SAVE_KEY, serialized);
+                return;
+            } catch (e) {
+                console.error("Save error (window.storage)", e);
+            }
+        }
+
+        try {
+            localStorage.setItem(SAVE_KEY, serialized);
+        } catch (e) {
+            memoryFallback = serialized;
+        }
+    }
+
+    async function loadGame() {
+        let saved = null;
+
+        if (window.storage && typeof window.storage.get === 'function') {
+            try {
+                const result = await window.storage.get(SAVE_KEY);
+                if (result) saved = result.value;
+            } catch (e) {
+                saved = null;
+            }
+        } else {
+            try {
+                saved = localStorage.getItem(SAVE_KEY);
+            } catch (e) {
+                saved = memoryFallback;
+            }
+        }
+
+        if (!saved) return;
+
+        try {
+            const payload = JSON.parse(saved);
+            const parsedData = payload && payload.data;
+            const expectedChecksum = parsedData ? computeChecksum(parsedData) : null;
+
+            if (!parsedData || payload.checksum !== expectedChecksum) {
+                console.warn('idleTT: save integrity check failed (missing or mismatched checksum) - ignoring this save and starting fresh to avoid loading tampered data.');
+                return;
+            }
+
+            if (parsedData.game && typeof parsedData.game === 'object') {
+                game.points = sanitizeNumber(parsedData.game.points, 0);
+                game.baseIncome = DEFAULT_BASE_INCOME;
+                game.multiplier = sanitizeNumber(parsedData.game.multiplier, 1, 0);
+                game.totalEarned = sanitizeNumber(parsedData.game.totalEarned, 0);
+                game.playTimeSeconds = sanitizeNumber(parsedData.game.playTimeSeconds, 0);
+                const savedExpiry = parsedData.game.doubleIncomeExpiryPlayTime !== undefined
+                    ? parsedData.game.doubleIncomeExpiryPlayTime
+                    : parsedData.game.doubleXpExpiryPlayTime;
+                game.doubleIncomeExpiryPlayTime = sanitizeNumber(savedExpiry, 0);
+                game.level = Math.max(1, Math.floor(sanitizeNumber(parsedData.game.level, 1, 1)));
+                game.exp = sanitizeNumber(parsedData.game.exp, 0);
+            }
+
+            lifetimeEarnings = sanitizeNumber(parsedData.lifetimeEarnings, 0);
+
+            prestigeCount = sanitizeNumber(parsedData.prestigeCount, 0);
+            if (Array.isArray(parsedData.upgradesLevels)) {
+                parsedData.upgradesLevels.forEach(savedUp => {
+                    const id = LEGACY_UPGRADE_ID_ALIASES[savedUp.id] || savedUp.id;
+                    const up = upgrades.find(u => u.id === id);
+                    if (!up) return;
+                    const rawLevel = sanitizeNumber(savedUp.level, 0, 0, up.maxLevel || Number.MAX_SAFE_INTEGER);
+                    up.level = Math.floor(rawLevel);
+                });
+            }
+
+            if (Array.isArray(parsedData.ownedBusinesses)) {
+                parsedData.ownedBusinesses.forEach(bizId => {
+                    const biz = businesses.find(b => b.id === bizId);
+                    if (biz) biz.owned = true;
+                });
+            }
+        } catch (e) {
+            console.error("Error while loading save", e);
+        }
+    }
+
+    async function clearSave() {
+        memoryFallback = null;
+
+        if (window.storage && typeof window.storage.delete === 'function') {
+            try {
+                await window.storage.delete(SAVE_KEY);
+                return;
+            } catch (e) {
+                console.error("Error deleting save (window.storage)", e);
+            }
+        }
+
+        try {
+            localStorage.removeItem(SAVE_KEY);
+        } catch (e) {
+            
+        }
+    }
+
+    function requestHardReset() {
+        const confirmBtn = document.getElementById('reset-modal-confirm-btn');
+        document.getElementById('reset-modal-type').innerText = 'Hard Reset';
+        document.getElementById('reset-modal-message').innerText = 'All data will be permanently deleted. This cannot be undone.';
+        confirmBtn.innerText = 'Hard Reset';
+        confirmBtn.className = 'btn-modal btn-danger-solid';
+        confirmBtn.onclick = function() { confirmHardReset(); };
+        document.getElementById('reset-modal-overlay').classList.add('visible');
+    }
+
+    function requestPrestige() {
+        const trailerUpgrade = upgrades.find(u => u.id === 'trailer_mk');
+        const ownedBusinessCount = businesses.filter(b => b.owned).length;
+        const canPrestige = game.level >= 100 && trailerUpgrade.level === 14 && ownedBusinessCount === 73;
+        if (!canPrestige) return;
+
+        const confirmBtn = document.getElementById('reset-modal-confirm-btn');
+        document.getElementById('reset-modal-type').innerText = 'Prestige';
+        document.getElementById('reset-modal-message').innerText = `Prestige will reset your progress but keep your Lifetime Earnings. You will become Prestige ${prestigeCount + 1}.`;
+        confirmBtn.innerText = 'Prestige';
+        confirmBtn.className = 'btn-modal btn-gold-solid';
+        confirmBtn.onclick = function() { confirmPrestige(); };
+        document.getElementById('reset-modal-overlay').classList.add('visible');
+    }
+
+    function cancelReset() {
+        document.getElementById('reset-modal-overlay').classList.remove('visible');
+    }
+
+    async function confirmHardReset() {
+        lifetimeEarnings = 0;
+        game = createDefaultGameState();
+        upgrades.forEach(u => u.level = 0);
+        businesses.forEach(b => b.owned = false);
+        prestigeCount = 0;
+        cancelReset();
+        updateUI();
+        await saveGame();
+    }
+
+    async function confirmPrestige() {
+        prestigeCount++;
+        game = createDefaultGameState();
+        upgrades.forEach(u => u.level = 0);
+        businesses.forEach(b => b.owned = false);
+        cancelReset();
+        updateUI();
+        await saveGame(); 
+    }
+
+    function getUpgradeCost(upgrade) {
+        if (upgrade.type === 'consumable_double_income') {
+            return Math.floor(upgrade.baseCost * (1 + Math.log(1 + upgrade.level)));
+        }
+        return Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, upgrade.level));
+    }
+
+    function isDoubleIncomeActive() {
+        return game.doubleIncomeExpiryPlayTime > game.playTimeSeconds;
+    }
+
+    function getDoubleIncomeRemainingSeconds() {
+        return Math.max(0, game.doubleIncomeExpiryPlayTime - game.playTimeSeconds);
+    }
+
+    function formatDuration(totalSeconds) {
+        const s = Math.floor(totalSeconds);
+        const hours = Math.floor(s / 3600);
+        const minutes = Math.floor((s % 3600) / 60);
+        return `${hours}h ${minutes}m`;
+    }
+
+    function getTierIncomeBonus(upgrade) {
+        if (upgrade.level === 0) return 0;
+        const capacity = trailerCapacities[upgrade.level - 1] || 0;
+        return capacity * CAPACITY_INCOME_SCALE;
+    }
+
+    function getIncomePerSecond() {
+        let addedIncome = upgrades
+            .filter(u => u.type === 'income')
+            .reduce((sum, u) => sum + (u.level * u.value), 0);
+
+        let tierIncome = upgrades
+            .filter(u => u.type === 'tier')
+            .reduce((sum, u) => sum + getTierIncomeBonus(u), 0);
+
+        let multiplierBonus = upgrades
+            .filter(u => u.type === 'multiplier')
+            .reduce((sum, u) => sum + (u.level * u.value), 0);
+
+        let businessIncome = businesses
+            .filter(b => b.owned)
+            .reduce((sum, b) => sum + (b.price * BUSINESS_INCOME_RATE), 0);
+
+        let total = (game.baseIncome + addedIncome + tierIncome + businessIncome) * (game.multiplier + multiplierBonus);
+
+        const levelBonus = 1 + (game.level * LEVEL_INCOME_BONUS_RATE);
+        total *= levelBonus;
+
+        if (isDoubleIncomeActive()) {
+            total *= 2;
+        }
+
+        return total;
+    }
+
+    async function buyUpgrade(id) {
+        const upgrade = upgrades.find(u => u.id === id);
+        if (upgrade.maxLevel && upgrade.level >= upgrade.maxLevel) return;
+
+        const cost = getUpgradeCost(upgrade);
+        if (game.points < cost) return;
+
+        game.points -= cost;
+        upgrade.level++;
+        addExp(cost * EXP_PURCHASE_BONUS_RATE); 
+
+        if (upgrade.type === 'consumable_double_income') {
+            const extendFrom = Math.max(game.playTimeSeconds, game.doubleIncomeExpiryPlayTime);
+            game.doubleIncomeExpiryPlayTime = extendFrom + DOUBLE_INCOME_DURATION_SECONDS;
+        }
+
+        updateUI();
+        await saveGame(); 
+    }
+
+    function formatTT(amount) {
+        return Math.floor(amount).toLocaleString('en-US');
+    }
+
+    async function buyBusiness(id) {
+        const business = businesses.find(b => b.id === id);
+        if (!business || business.owned) return;
+
+        if (game.points >= business.price) {
+            game.points -= business.price;
+            business.owned = true;
+            addExp(business.price * EXP_PURCHASE_BONUS_RATE); 
+            updateUI();
+            await saveGame(); 
+        }
+    }
+
+    function renderBusinesses() {
+        const container = document.getElementById('businesses-container');
+        container.innerHTML = '';
+
+        businesses.forEach(biz => {
+            const canAfford = game.points >= biz.price;
+            const bizIncome = biz.price * BUSINESS_INCOME_RATE;
+
+            const card = document.createElement('div');
+            card.className = biz.owned ? 'upgrade-card owned' : 'upgrade-card';
+            card.innerHTML = `
+                <div class="upgrade-info">
+                    <div class="upgrade-name">${biz.name}</div>
+                    <div class="upgrade-details">${biz.owned ? `Owned - +${formatTT(bizIncome)} TT/s` : `+${formatTT(bizIncome)} TT/s`}</div>
+                </div>
+                <button class="upgrade-btn ${biz.owned ? 'owned-btn' : ''}" ${(biz.owned || !canAfford) ? 'disabled' : ''} onclick="buyBusiness('${biz.id}')">
+                    ${biz.owned ? 'Owned' : formatTT(biz.price) + ' TT'}
+                </button>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function renderUpgrades() {
+        const container = document.getElementById('upgrades-container');
+        container.innerHTML = '';
+
+        upgrades.forEach(up => {
+            const isMaxed = up.maxLevel && up.level >= up.maxLevel;
+            const cost = isMaxed ? null : getUpgradeCost(up);
+            const canAfford = !isMaxed && game.points >= cost;
+
+            let displayName, detailsText;
+            if (up.type === 'tier') {
+                displayName = isMaxed
+                    ? `${up.baseName} - MK${up.level} (MAX)`
+                    : `${up.baseName} to MK${up.level + 1}`;
+
+                const currentBonus = getTierIncomeBonus(up);
+                const currentCapacity = up.level > 0 ? trailerCapacities[up.level - 1] : 0;
+                const nextCapacity = !isMaxed ? trailerCapacities[up.level] : null;
+                const nextBonus = !isMaxed ? nextCapacity * CAPACITY_INCOME_SCALE : null;
+
+                if (up.level === 0) {
+                    detailsText = `${up.description}<br><small style="color:var(--accent-color)">Effect: +${nextBonus.toFixed(2)} TT/s (${nextCapacity}kg capacity)</small>`;
+                } else if (isMaxed) {
+                    detailsText = `Current tier: MK${up.level}<br><small style="color:var(--accent-color)">Effect: +${currentBonus.toFixed(2)} TT/s (${currentCapacity}kg capacity)</small>`;
+                } else {
+                    detailsText = `Current tier: MK${up.level} (+${currentBonus.toFixed(2)} TT/s)<br><small style="color:var(--accent-color)">Next: +${nextBonus.toFixed(2)} TT/s (${nextCapacity}kg capacity)</small>`;
+                }
+            } else if (up.type === 'consumable_double_income') {
+                displayName = `${up.name} (Owned: ${up.level})`;
+
+                if (isDoubleIncomeActive()) {
+                    const remaining = formatDuration(getDoubleIncomeRemainingSeconds());
+                    detailsText = `${up.description}<br><small style="color:var(--accent-pink)">Active now: x2 income - ${remaining} remaining</small>`;
+                } else {
+                    detailsText = `${up.description}<br><small style="color:var(--accent-color)">Not active - buy one to start doubling income</small>`;
+                }
+            } else {
+                let effectText = up.type === 'income' ? `+${up.value} TT/s` : `+${up.value * 100}%`;
+                displayName = `${up.name} (Lvl ${up.level})`;
+                detailsText = `${up.description}<br><small style="color:var(--accent-color)">Effect: ${effectText}</small>`;
+            }
+
+            const card = document.createElement('div');
+            card.className = isMaxed ? 'upgrade-card owned' : 'upgrade-card';
+            card.innerHTML = `
+                <div class="upgrade-info">
+                    <div class="upgrade-name">${displayName}</div>
+                    <div class="upgrade-details">${detailsText}</div>
+                </div>
+                <button class="upgrade-btn ${isMaxed ? 'owned-btn' : ''}" ${(isMaxed || !canAfford) ? 'disabled' : ''} onclick="buyUpgrade('${up.id}')">
+                    ${isMaxed ? 'MAX' : formatTT(cost) + ' TT'}
+                </button>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function formatPlayTime(totalSeconds) {
+        const s = Math.floor(totalSeconds);
+        const hours = Math.floor(s / 3600);
+        const minutes = Math.floor((s % 3600) / 60);
+        const seconds = s % 60;
+        const pad = n => String(n).padStart(2, '0');
+        return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    }
+
+    function updateUI(precomputedIncome) {
+        const income = precomputedIncome !== undefined ? precomputedIncome : getIncomePerSecond();
+        document.getElementById('points-display').innerText = game.points.toFixed(1);
+        document.getElementById('income-display').innerText = `+${income.toFixed(2)} TT/s`;
+
+        const badge = document.getElementById('double-income-badge');
+        if (isDoubleIncomeActive()) {
+            badge.style.display = 'inline-block';
+            badge.innerText = `x2 INCOME - ${formatDuration(getDoubleIncomeRemainingSeconds())} left`;
+        } else {
+            badge.style.display = 'none';
+        }
+
+        const trailerUpgrade = upgrades.find(u => u.id === 'trailer_mk');
+        const ownedBusinessCount = businesses.filter(b => b.owned).length;
+        const cheapestUnowned = businesses
+            .filter(b => !b.owned)
+            .sort((a, b) => a.price - b.price)[0];
+
+        document.getElementById('stat-trailer-tier').innerText = `MK${trailerUpgrade.level} / ${trailerUpgrade.maxLevel}`;
+        document.getElementById('stat-businesses-owned').innerText = `${ownedBusinessCount} / ${businesses.length}`;
+        document.getElementById('stat-level').innerText = `Lv. ${game.level}`;
+        document.getElementById('stat-exp').innerText = `${formatTT(game.exp)} / ${formatTT(getExpRequiredForLevel(game.level))}`;
+        const expNeeded = getExpRequiredForLevel(game.level);
+        const expPct = expNeeded > 0 ? Math.min(100, (game.exp / expNeeded) * 100) : 0;
+        document.getElementById('exp-bar-fill').style.width = `${expPct}%`;
+        document.getElementById('stat-total-earned').innerText = formatTT(game.totalEarned);
+        document.getElementById('stat-lifetime-earnings').innerText = formatTT(lifetimeEarnings);
+        document.getElementById('stat-play-time').innerText = formatPlayTime(game.playTimeSeconds);
+        document.getElementById('stat-next-goal').innerText = cheapestUnowned
+            ? `${cheapestUnowned.name} - ${formatTT(cheapestUnowned.price)} TT`
+            : 'All businesses owned!';
+
+        
+        const lv100Met = game.level >= 100;
+        const mk14Met = trailerUpgrade.level === 14;
+        const biz73Met = ownedBusinessCount === 73;
+        const canPrestige = lv100Met && mk14Met && biz73Met;
+
+        document.getElementById('prestige-check-lv100').style.color = lv100Met ? 'var(--accent-gold)' : 'var(--text-muted)';
+        document.getElementById('prestige-check-lv100').innerText = (lv100Met ? '✓' : '❌') + ' Level 100';
+        document.getElementById('prestige-check-mk14').style.color = mk14Met ? 'var(--accent-gold)' : 'var(--text-muted)';
+        document.getElementById('prestige-check-mk14').innerText = (mk14Met ? '✓' : '❌') + ' Trailer MK14';
+        document.getElementById('prestige-check-biz73').style.color = biz73Met ? 'var(--accent-gold)' : 'var(--text-muted)';
+        document.getElementById('prestige-check-biz73').innerText = (biz73Met ? '✓' : '❌') + ' All 73 Businesses';
+
+        const prestigeBtn = document.getElementById('prestige-btn');
+        prestigeBtn.disabled = !canPrestige;
+        prestigeBtn.classList.toggle('btn-gold-solid', canPrestige);
+        prestigeBtn.classList.toggle('btn-locked', !canPrestige);
+        prestigeBtn.innerText = canPrestige
+            ? `Prestige (${prestigeCount > 0 ? prestigeCount + ' → ' + (prestigeCount + 1) : '1'})`
+            : 'Prestige (locked)';
+
+        const magicUnlocked = prestigeCount > 0;
+        document.getElementById('tab-btn-magic').style.display = magicUnlocked ? '' : 'none';
+        if (!magicUnlocked && isTabActive('magic')) switchTab('main');
+
+        if (isTabActive('upgrades')) renderUpgrades();
+        if (isTabActive('businesses')) renderBusinesses();
+    }
+
+    function isTabActive(tabName) {
+        const tab = document.getElementById('tab-' + tabName);
+        return !!tab && tab.classList.contains('active');
+    }
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+        document.getElementById('tab-' + tabName).classList.add('active');
+        document.querySelector(`.tab-btn[data-tab="${tabName}"]`).classList.add('active');
+
+        if (tabName === 'upgrades') renderUpgrades();
+        if (tabName === 'businesses') renderBusinesses();
+    }
+
+    (async function init() {
+        await loadGame(); // Load old save on startup
+        updateUI();
+
+        const tickRate = 2;
+        setInterval(() => {
+            const incomeRate = getIncomePerSecond();
+            const incomePerTick = incomeRate / tickRate;
+            game.points += incomePerTick;
+            game.totalEarned += incomePerTick;
+            lifetimeEarnings += incomePerTick;
+            game.playTimeSeconds += 1 / tickRate;
+            addExp(incomePerTick); 
+            updateUI(incomeRate); 
+        }, 1000 / tickRate);
+
+        setInterval(saveGame, 5000);
+    })();
+
+    window.addEventListener('beforeunload', saveGame);
+
+    window.switchTab = switchTab;
+    window.requestHardReset = requestHardReset;
+    window.requestPrestige = requestPrestige;
+    window.confirmHardReset = confirmHardReset;
+    window.confirmPrestige = confirmPrestige;
+    window.cancelReset = cancelReset;
+    window.buyUpgrade = buyUpgrade;
+    window.buyBusiness = buyBusiness;
+})();
+</script>
+
+</body>
+</html>
