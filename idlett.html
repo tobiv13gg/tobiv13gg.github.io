@@ -984,7 +984,7 @@
             description: 'Increases your trailer\'s own income by a percentage, on top of its tier bonus.',
             targetUpgradeId: 'trailer_mk',
             targetLabel: 'Trailer',
-            boostPerLevel: 0.05, 
+            boostPerLevel: 0.005,
             baseCost: 1,
             costMultiplier: 1,
             level: 0,
@@ -997,7 +997,7 @@
             description: 'Increases your weapon\'s own income by a percentage, on top of its tier bonus.',
             targetUpgradeId: 'weapon_tier',
             targetLabel: 'Weapon',
-            boostPerLevel: 0.05,
+            boostPerLevel: 0.005,
             baseCost: 1,
             costMultiplier: 1,
             level: 0,
@@ -1010,7 +1010,7 @@
             description: 'Increases your truck\'s own income by a percentage, on top of its tier bonus.',
             targetUpgradeId: 'truck_tier',
             targetLabel: 'Truck',
-            boostPerLevel: 0.05,
+            boostPerLevel: 0.005,
             baseCost: 1,
             costMultiplier: 1,
             level: 0,
@@ -1230,7 +1230,7 @@
         try {
             localStorage.removeItem(SAVE_KEY);
         } catch (e) {
-		
+        
         }
     }
 
@@ -1406,9 +1406,9 @@
         if (game.points >= business.price) {
             game.points -= business.price;
             business.owned = true;
-            addExp(business.price * EXP_PURCHASE_BONUS_RATE);
+            addExp(business.price * EXP_PURCHASE_BONUS_RATE); 
             updateUI(undefined, true); 
-            await saveGame();
+            await saveGame(); 
         }
     }
 
@@ -1808,7 +1808,7 @@
             game.totalEarned += incomePerTick;
             lifetimeEarnings += incomePerTick;
             game.playTimeSeconds += 1 / tickRate;
-            addExp(incomePerTick); 
+            addExp(incomePerTick);
             updateUI(incomeRate); 
         }, 1000 / tickRate);
 
@@ -1816,6 +1816,7 @@
     })();
 
     window.addEventListener('beforeunload', saveGame);
+
     window.switchTab = switchTab;
     window.requestHardReset = requestHardReset;
     window.requestPrestige = requestPrestige;
