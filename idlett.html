@@ -152,10 +152,10 @@
             text-shadow: 0 0 10px rgba(255, 59, 59, 0.5);
         }
 
-        .tab-btn.active[data-tab="magic"] {
-            color: var(--accent-cyan);
-            border-bottom-color: var(--accent-cyan);
-            text-shadow: 0 0 10px rgba(31, 214, 242, 0.5);
+        .tab-btn.active[data-tab="prestige"] {
+            color: var(--accent-gold);
+            border-bottom-color: var(--accent-gold);
+            text-shadow: 0 0 10px rgba(255, 201, 77, 0.5);
         }
 
         .tab-content {
@@ -529,38 +529,18 @@
             cursor: not-allowed;
         }
 
-        .magic-placeholder {
+        #prestige-tab-header {
             text-align: center;
-            padding: 50px 15px;
-        }
-
-        .magic-placeholder-icon {
-            font-size: 2.6rem;
-            margin-bottom: 10px;
-            filter: drop-shadow(0 0 12px rgba(31, 214, 242, 0.6));
-            animation: magic-float 3.5s infinite ease-in-out;
-        }
-
-        @keyframes magic-float {
-            0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 12px rgba(31, 214, 242, 0.6)); }
-            50% { transform: translateY(-6px); filter: drop-shadow(0 0 18px rgba(255, 46, 146, 0.6)); }
-        }
-
-        .magic-placeholder-title {
             font-family: var(--font-display);
-            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-pink));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            font-size: 1.6rem;
-            letter-spacing: 3px;
-            margin-bottom: 10px;
+            color: var(--accent-gold);
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            text-shadow: 0 0 10px rgba(255, 201, 77, 0.4);
         }
 
-        .magic-placeholder-text {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            line-height: 1.5;
+        #prestige-tab-header span {
+            font-family: var(--font-hud);
         }
 
         .reset-tab-intro {
@@ -729,7 +709,7 @@
             color: var(--text-color);
             border-color: var(--text-muted);
         }
-    </style>
+</style>
 </head>
 <body>
 
@@ -745,7 +725,7 @@
         <button class="tab-btn" data-tab="upgrades" onclick="switchTab('upgrades')">Upgrades</button>
         <button class="tab-btn" data-tab="skills" onclick="switchTab('skills')">Skills</button>
         <button class="tab-btn" data-tab="businesses" onclick="switchTab('businesses')">Businesses</button>
-        <button class="tab-btn" data-tab="magic" id="tab-btn-magic" onclick="switchTab('magic')" style="display:none;">Magic</button>
+        <button class="tab-btn" data-tab="prestige" id="tab-btn-prestige" onclick="switchTab('prestige')" style="display:none;">Prestige</button>
         <button class="tab-btn" data-tab="reset" onclick="switchTab('reset')">Reset</button>
     </div>
 
@@ -818,12 +798,9 @@
         </div>
     </div>
 
-    <div class="tab-content" id="tab-magic">
-        <div class="magic-placeholder">
-            <div class="magic-placeholder-icon">✨</div>
-            <div class="magic-placeholder-title">MAGIC</div>
-            <p class="magic-placeholder-text">Something new unlocked by reaching Prestige 1.<br>Coming soon.</p>
-        </div>
+    <div class="tab-content" id="tab-prestige">
+        <div id="prestige-tab-header">PRESTIGE - <span id="prestige-points-count">0</span> Points</div>
+        <div class="upgrades-list" id="prestige-upgrades-container"></div>
     </div>
 
     <div class="tab-content" id="tab-reset">
@@ -841,12 +818,15 @@
         <div class="reset-panel reset-panel--prestige">
             <div class="reset-panel-title">Prestige</div>
             <div class="reset-panel-desc">Soft reset. Keep lifetime earnings. Requires all conditions met:</div>
-            <div class="prestige-checklist">
-                <div id="prestige-check-lv100">❌ Level 100</div>
-                <div id="prestige-check-mk14">❌ Trailer MK14</div>
-                <div id="prestige-check-smg">❌ SMG Weapon</div>
-                <div id="prestige-check-roadkiller">❌ Roadkiller Truck</div>
+            <div class="prestige-checklist" id="prestige-checklist">
+                <div id="prestige-check-level">❌ Level 100</div>
+                <div id="prestige-check-trailer">❌ Trailer</div>
+                <div id="prestige-check-weapon">❌ Weapon</div>
+                <div id="prestige-check-truck">❌ Truck</div>
                 <div id="prestige-check-biz73">❌ All 73 Businesses</div>
+            </div>
+            <div class="prestige-checklist" id="prestige-max-message" style="display:none;">
+                <div style="color:var(--accent-gold);">You've reached the maximum Prestige level.</div>
             </div>
             <button id="prestige-btn" class="reset-btn btn-block btn-locked" disabled onclick="requestPrestige()">Prestige (locked)</button>
         </div>
@@ -870,11 +850,12 @@
 
     const DEFAULT_BASE_INCOME = 0.1;
 
+    const MAX_LEVEL = 632;
+
     function createDefaultGameState() {
         return {
             points: 0,
             baseIncome: DEFAULT_BASE_INCOME,
-            multiplier: 1,
             totalEarned: 0,
             playTimeSeconds: 0,
             doubleIncomeExpiryPlayTime: 0,
@@ -890,15 +871,26 @@
         return Math.floor(50 * Math.pow(level, 1.5));
     }
 
+    function getPrestigeExpMultiplier() {
+        const upg = prestigeUpgrades.find(u => u.id === 'prestige_double_xp');
+        return upg && upg.level > 0 ? upg.expMultiplier : 1;
+    }
+
     function addExp(amount) {
         if (!isFinite(amount) || amount <= 0) return;
-        game.exp += amount;
+        if (game.level >= MAX_LEVEL) return;
+
+        game.exp += amount * getPrestigeExpMultiplier();
 
         let requiredForNext = getExpRequiredForLevel(game.level);
-        while (game.exp >= requiredForNext) {
+        while (game.level < MAX_LEVEL && game.exp >= requiredForNext) {
             game.exp -= requiredForNext;
             game.level++;
             game.levelTokens++;
+            if (game.level >= MAX_LEVEL) {
+                game.exp = 0;
+                break;
+            }
             requiredForNext = getExpRequiredForLevel(game.level);
         }
     }
@@ -906,14 +898,56 @@
     let lifetimeEarnings = 0;
 
     let prestigeCount = 0;
+    let prestigePoints = 0;
 
-    const BUSINESS_INCOME_RATE = 0.00026; 
+    let prestigeUpgrades = [
+        {
+            id: 'prestige_cost_reduction',
+            name: 'Cost Reduction',
+            description: 'Reduces the cost of every purchase by 10%.',
+            baseCost: 1,
+            costMultiplier: 1,
+            level: 0,
+            maxLevel: 1,
+            currency: 'prestigePoints',
+            type: 'prestige_upgrade',
+            reductionAmount: 0.10
+        },
+        {
+            id: 'prestige_income_boost',
+            name: 'Income Boost',
+            description: 'Increases all income by 10%.',
+            baseCost: 1,
+            costMultiplier: 1,
+            level: 0,
+            maxLevel: 1,
+            currency: 'prestigePoints',
+            type: 'prestige_upgrade',
+            boostAmount: 0.10
+        },
+        {
+            id: 'prestige_double_xp',
+            name: 'Double XP',
+            description: 'Doubles all EXP gained. Does not affect TT income.',
+            baseCost: 1,
+            costMultiplier: 1,
+            level: 0,
+            maxLevel: 1,
+            currency: 'prestigePoints',
+            type: 'prestige_upgrade',
+            expMultiplier: 2
+        }
+    ];
+
+    const PRESTIGE_INCOME_BONUS_RATE = 1.0;
+
+    const BUSINESS_INCOME_RATE = 0.00026;
 
     const LEVEL_INCOME_BONUS_RATE = 0.008;
 
     const EXP_PURCHASE_BONUS_RATE = 0.01;
 
-    const DOUBLE_INCOME_DURATION_SECONDS = 24 * 60 * 60;
+    const DOUBLE_INCOME_DURATION_SECONDS = 2 * 60 * 60;
 
     const LEGACY_UPGRADE_ID_ALIASES = {
         'double_xp_token': 'double_income_token'
@@ -930,8 +964,14 @@
             maxLevel: 14,
             type: 'tier',
             tierValues: [400, 475, 600, 775, 1000, 1500, 2200, 2500, 2750, 3000, 3500, 5000, 8500, 9000],
-            incomeScale: 0.00028, 
-            unitLabel: 'kg capacity'
+            incomeScale: 0.00028,
+            unitLabel: 'kg capacity',
+            levelRequirements: {
+                1: { id: 'truck_tier', level: 1 },
+                4: { id: 'truck_tier', level: 3 },
+                8: { id: 'truck_tier', level: 6 },
+                12: { id: 'truck_tier', level: 9 }
+            }
         },
         {
             id: 'weapon_tier',
@@ -942,7 +982,7 @@
             level: 0,
             maxLevel: 24,
             type: 'tier',
-            tierZeroName: 'Fists', 
+            tierZeroName: 'Fists',
             tierNames: [
                 'Knife', 'Machete', 'SNS Pistol', 'Combat Pistol', 'AP Pistol',
                 'Heavy Pistol', 'Machine Pistol', 'SMG', 'Combat PDW', 'Gusenberg',
@@ -958,11 +998,11 @@
             baseName: 'Upgrade your truck',
             description: 'Upgrade your truck to the next tier for a more powerful rig, which boosts your passive income',
             baseCost: 220,
-            costMultiplier: 2.0, 
+            costMultiplier: 2.0,
             level: 0,
             maxLevel: 11,
             type: 'tier',
-            tierZeroName: 'Speedo Express', 
+            tierZeroName: 'Speedo Express',
             tierNames: [
                 'Voyager', 'Packer', 'Phantom', 'Roadkiller', 'Hauler', 'Ural',
                 'Cerberus', 'Longpath', 'CollinsCo Phantom', 'Phantom Custom', 'Phantom Wedge'
@@ -973,9 +1013,9 @@
         {
             id: 'double_income_token',
             name: 'Double Income Token',
-            description: 'Doubles ALL income, from every current and future source, for 24 hours of play time. Since EXP is earned from income, this also doubles your leveling speed. Buying another token while one is active extends the remaining duration instead of wasting it.',
-            baseCost: 350000,
-            level: 0, 
+            description: 'Doubles ALL income, from every current and future source, for 2 hours of play time. Since EXP is earned from income, this also doubles your leveling speed. Buying another token while one is active extends the remaining duration instead of wasting it.',
+            baseCost: 45000,
+            level: 0,
             type: 'consumable_double_income'
         },
         {
@@ -1121,6 +1161,8 @@
             game: game,
             lifetimeEarnings: lifetimeEarnings,
             prestigeCount: prestigeCount,
+            prestigePoints: prestigePoints,
+            prestigeUpgradeLevels: prestigeUpgrades.map(u => ({ id: u.id, level: u.level })),
             upgradesLevels: upgrades.map(u => ({ id: u.id, level: u.level })),
             ownedBusinesses: businesses.filter(b => b.owned).map(b => b.id)
         };
@@ -1154,7 +1196,7 @@
                 const result = await window.storage.get(SAVE_KEY);
                 if (result) saved = result.value;
             } catch (e) {
-                saved = null; 
+                saved = null;
             }
         } else {
             try {
@@ -1179,14 +1221,13 @@
             if (parsedData.game && typeof parsedData.game === 'object') {
                 game.points = sanitizeNumber(parsedData.game.points, 0);
                 game.baseIncome = DEFAULT_BASE_INCOME;
-                game.multiplier = sanitizeNumber(parsedData.game.multiplier, 1, 0);
                 game.totalEarned = sanitizeNumber(parsedData.game.totalEarned, 0);
                 game.playTimeSeconds = sanitizeNumber(parsedData.game.playTimeSeconds, 0);
                 const savedExpiry = parsedData.game.doubleIncomeExpiryPlayTime !== undefined
                     ? parsedData.game.doubleIncomeExpiryPlayTime
                     : parsedData.game.doubleXpExpiryPlayTime;
                 game.doubleIncomeExpiryPlayTime = sanitizeNumber(savedExpiry, 0);
-                game.level = Math.max(1, Math.floor(sanitizeNumber(parsedData.game.level, 1, 1)));
+                game.level = Math.min(MAX_LEVEL, Math.max(1, Math.floor(sanitizeNumber(parsedData.game.level, 1, 1))));
                 game.exp = sanitizeNumber(parsedData.game.exp, 0);
                 game.levelTokens = Math.max(0, Math.floor(sanitizeNumber(parsedData.game.levelTokens, 0)));
             }
@@ -1194,10 +1235,20 @@
             lifetimeEarnings = sanitizeNumber(parsedData.lifetimeEarnings, 0);
 
             prestigeCount = sanitizeNumber(parsedData.prestigeCount, 0);
+            prestigePoints = sanitizeNumber(parsedData.prestigePoints, 0);
             if (Array.isArray(parsedData.upgradesLevels)) {
                 parsedData.upgradesLevels.forEach(savedUp => {
                     const id = LEGACY_UPGRADE_ID_ALIASES[savedUp.id] || savedUp.id;
                     const up = upgrades.find(u => u.id === id);
+                    if (!up) return;
+                    const rawLevel = sanitizeNumber(savedUp.level, 0, 0, up.maxLevel || Number.MAX_SAFE_INTEGER);
+                    up.level = Math.floor(rawLevel);
+                });
+            }
+
+            if (Array.isArray(parsedData.prestigeUpgradeLevels)) {
+                parsedData.prestigeUpgradeLevels.forEach(savedUp => {
+                    const up = prestigeUpgrades.find(u => u.id === savedUp.id);
                     if (!up) return;
                     const rawLevel = sanitizeNumber(savedUp.level, 0, 0, up.maxLevel || Number.MAX_SAFE_INTEGER);
                     up.level = Math.floor(rawLevel);
@@ -1215,24 +1266,6 @@
         }
     }
 
-    async function clearSave() {
-        memoryFallback = null;
-
-        if (window.storage && typeof window.storage.delete === 'function') {
-            try {
-                await window.storage.delete(SAVE_KEY);
-                return;
-            } catch (e) {
-                console.error("Error deleting save (window.storage)", e);
-            }
-        }
-
-        try {
-            localStorage.removeItem(SAVE_KEY);
-        } catch (e) {
-        
-        }
-    }
 
     function requestHardReset() {
         const confirmBtn = document.getElementById('reset-modal-confirm-btn');
@@ -1244,23 +1277,46 @@
         document.getElementById('reset-modal-overlay').classList.add('visible');
     }
 
+    const PRESTIGE_REQUIREMENTS = [
+        { trailerTier: 6, weaponTierName: 'SMG', truckTierName: 'Roadkiller' },
+        { trailerTier: 12, weaponTierName: 'Assault Rifle', truckTierName: 'Longpath' },
+        { trailerTier: 14, weaponTierName: 'Sniper Rifle', truckTierName: 'Phantom Custom' },
+        { trailerTier: 14, weaponTierName: 'Railgun', truckTierName: 'Phantom Wedge' }
+    ];
+
+    const MAX_PRESTIGE_LEVEL = 6;
+
     function getPrestigeStatus() {
+        if (prestigeCount >= MAX_PRESTIGE_LEVEL) {
+            return { atMaxPrestige: true, canPrestige: false };
+        }
+
         const trailerUpgrade = upgrades.find(u => u.id === 'trailer_mk');
         const weaponUpgrade = upgrades.find(u => u.id === 'weapon_tier');
         const truckUpgrade = upgrades.find(u => u.id === 'truck_tier');
         const ownedBusinessCount = businesses.filter(b => b.owned).length;
-        const smgRequiredLevel = weaponUpgrade.tierNames.indexOf('SMG') + 1;
-        const roadkillerRequiredLevel = truckUpgrade.tierNames.indexOf('Roadkiller') + 1;
 
-        const lv100Met = game.level >= 100;
-        const mk14Met = trailerUpgrade.level === trailerUpgrade.maxLevel;
-        const smgMet = weaponUpgrade.level >= smgRequiredLevel;
-        const roadkillerMet = truckUpgrade.level >= roadkillerRequiredLevel;
+        const targetPrestigeLevel = prestigeCount + 1;
+        const reqIndex = Math.min(targetPrestigeLevel - 1, PRESTIGE_REQUIREMENTS.length - 1);
+        const req = PRESTIGE_REQUIREMENTS[reqIndex];
+        const weaponRequiredLevel = weaponUpgrade.tierNames.indexOf(req.weaponTierName) + 1;
+        const truckRequiredLevel = truckUpgrade.tierNames.indexOf(req.truckTierName) + 1;
+        const requiredCharLevel = targetPrestigeLevel * 100;
+
+        const levelMet = game.level >= requiredCharLevel;
+        const trailerMet = trailerUpgrade.level >= req.trailerTier;
+        const weaponMet = weaponUpgrade.level >= weaponRequiredLevel;
+        const truckMet = truckUpgrade.level >= truckRequiredLevel;
         const biz73Met = ownedBusinessCount === businesses.length;
 
         return {
-            lv100Met, mk14Met, smgMet, roadkillerMet, biz73Met,
-            canPrestige: lv100Met && mk14Met && smgMet && roadkillerMet && biz73Met
+            atMaxPrestige: false,
+            levelMet, trailerMet, weaponMet, truckMet, biz73Met,
+            requiredCharLevel,
+            trailerTier: req.trailerTier,
+            weaponTierName: req.weaponTierName,
+            truckTierName: req.truckTierName,
+            canPrestige: levelMet && trailerMet && weaponMet && truckMet && biz73Met
         };
     }
 
@@ -1286,6 +1342,8 @@
         upgrades.forEach(u => u.level = 0);
         businesses.forEach(b => b.owned = false);
         prestigeCount = 0;
+        prestigePoints = 0;
+        prestigeUpgrades.forEach(u => u.level = 0);
         cancelReset();
         updateUI(undefined, true);
         await saveGame();
@@ -1293,19 +1351,36 @@
 
     async function confirmPrestige() {
         prestigeCount++;
+        prestigePoints++;
         game = createDefaultGameState();
         upgrades.forEach(u => u.level = 0);
         businesses.forEach(b => b.owned = false);
         cancelReset();
         updateUI(undefined, true);
-        await saveGame(); 
+        await saveGame();
+    }
+
+    function getCostReductionMultiplier() {
+        const upg = prestigeUpgrades.find(u => u.id === 'prestige_cost_reduction');
+        return upg && upg.level > 0 ? 1 - upg.reductionAmount : 1;
+    }
+
+    function getPrestigeIncomeBoostMultiplier() {
+        const upg = prestigeUpgrades.find(u => u.id === 'prestige_income_boost');
+        return upg && upg.level > 0 ? 1 + upg.boostAmount : 1;
     }
 
     function getUpgradeCost(upgrade) {
+        let cost;
         if (upgrade.type === 'consumable_double_income') {
-            return Math.floor(upgrade.baseCost * (1 + Math.log(1 + upgrade.level)));
+            cost = Math.floor(upgrade.baseCost * (1 + Math.log(1 + upgrade.level)));
+        } else {
+            cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, upgrade.level));
         }
-        return Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, upgrade.level));
+        if ((upgrade.currency || 'tt') === 'tt') {
+            cost = Math.floor(cost * getCostReductionMultiplier());
+        }
+        return cost;
     }
 
     function isDoubleIncomeActive() {
@@ -1334,32 +1409,37 @@
         return rawValue * upgrade.incomeScale * getSkillBoostMultiplier(upgrade.id);
     }
 
+    function isPrerequisiteMet(upgrade) {
+        if (!upgrade.levelRequirements) return true;
+        const req = upgrade.levelRequirements[upgrade.level + 1];
+        if (!req) return true;
+        const reqUp = upgrades.find(u => u.id === req.id);
+        return !!reqUp && reqUp.level >= req.level;
+    }
+
     function getTierDisplayName(upgrade, level) {
         if (level <= 0) return upgrade.tierZeroName || 'None';
         return upgrade.tierNames ? upgrade.tierNames[level - 1] : `MK${level}`;
     }
 
     function getIncomePerSecond() {
-        let addedIncome = upgrades
-            .filter(u => u.type === 'income')
-            .reduce((sum, u) => sum + (u.level * u.value), 0);
-
         let tierIncome = upgrades
             .filter(u => u.type === 'tier')
             .reduce((sum, u) => sum + getTierIncomeBonus(u), 0);
-
-        let multiplierBonus = upgrades
-            .filter(u => u.type === 'multiplier')
-            .reduce((sum, u) => sum + (u.level * u.value), 0);
 
         let businessIncome = businesses
             .filter(b => b.owned)
             .reduce((sum, b) => sum + (b.price * BUSINESS_INCOME_RATE), 0);
 
-        let total = (game.baseIncome + addedIncome + tierIncome + businessIncome) * (game.multiplier + multiplierBonus);
+        let total = game.baseIncome + tierIncome + businessIncome;
 
         const levelBonus = 1 + (game.level * LEVEL_INCOME_BONUS_RATE);
         total *= levelBonus;
+
+        const prestigeBonus = 1 + (prestigeCount * PRESTIGE_INCOME_BONUS_RATE);
+        total *= prestigeBonus;
+
+        total *= getPrestigeIncomeBoostMultiplier();
 
         if (isDoubleIncomeActive()) {
             total *= 2;
@@ -1369,13 +1449,19 @@
     }
 
     async function buyUpgrade(id) {
-        const upgrade = upgrades.find(u => u.id === id);
+        const upgrade = upgrades.find(u => u.id === id) || prestigeUpgrades.find(u => u.id === id);
+        if (!upgrade) return;
         if (upgrade.maxLevel && upgrade.level >= upgrade.maxLevel) return;
+        if (!isPrerequisiteMet(upgrade)) return;
 
         const cost = getUpgradeCost(upgrade);
         const currency = upgrade.currency || 'tt';
 
-        if (currency === 'levelTokens') {
+        if (currency === 'prestigePoints') {
+            if (prestigePoints < cost) return;
+            prestigePoints -= cost;
+            upgrade.level++;
+        } else if (currency === 'levelTokens') {
             if (game.levelTokens < cost) return;
             game.levelTokens -= cost;
             upgrade.level++;
@@ -1383,7 +1469,7 @@
             if (game.points < cost) return;
             game.points -= cost;
             upgrade.level++;
-            addExp(cost * EXP_PURCHASE_BONUS_RATE); 
+            addExp(cost * EXP_PURCHASE_BONUS_RATE);
 
             if (upgrade.type === 'consumable_double_income') {
                 const extendFrom = Math.max(game.playTimeSeconds, game.doubleIncomeExpiryPlayTime);
@@ -1391,24 +1477,29 @@
             }
         }
 
-        updateUI(undefined, true); 
-        await saveGame(); 
+        updateUI(undefined, true);
+        await saveGame();
     }
 
     function formatTT(amount) {
         return Math.floor(amount).toLocaleString('en-US');
     }
 
+    function getBusinessPrice(business) {
+        return Math.floor(business.price * getCostReductionMultiplier());
+    }
+
     async function buyBusiness(id) {
         const business = businesses.find(b => b.id === id);
         if (!business || business.owned) return;
 
-        if (game.points >= business.price) {
-            game.points -= business.price;
+        const price = getBusinessPrice(business);
+        if (game.points >= price) {
+            game.points -= price;
             business.owned = true;
-            addExp(business.price * EXP_PURCHASE_BONUS_RATE); 
-            updateUI(undefined, true); 
-            await saveGame(); 
+            addExp(price * EXP_PURCHASE_BONUS_RATE);
+            updateUI(undefined, true);
+            await saveGame();
         }
     }
 
@@ -1417,7 +1508,8 @@
         container.innerHTML = '';
 
         businesses.forEach(biz => {
-            const canAfford = game.points >= biz.price;
+            const price = getBusinessPrice(biz);
+            const canAfford = game.points >= price;
             const bizIncome = biz.price * BUSINESS_INCOME_RATE;
 
             const card = document.createElement('div');
@@ -1428,7 +1520,7 @@
                     <div class="upgrade-details">${biz.owned ? `Owned - +${formatTT(bizIncome)} TT/s` : `+${formatTT(bizIncome)} TT/s`}</div>
                 </div>
                 <button class="upgrade-btn ${biz.owned ? 'owned-btn' : ''}" ${(biz.owned || !canAfford) ? 'disabled' : ''} onclick="buyBusiness('${biz.id}')">
-                    ${biz.owned ? 'Owned' : formatTT(biz.price) + ' TT'}
+                    ${biz.owned ? 'Owned' : formatTT(price) + ' TT'}
                 </button>
             `;
             container.appendChild(card);
@@ -1437,10 +1529,11 @@
 
     function buildUpgradeCard(up) {
         const isMaxed = up.maxLevel && up.level >= up.maxLevel;
+        const locked = !isPrerequisiteMet(up);
         const cost = isMaxed ? null : getUpgradeCost(up);
         const currency = up.currency || 'tt';
-        const playerBalance = currency === 'levelTokens' ? game.levelTokens : game.points;
-        const canAfford = !isMaxed && playerBalance >= cost;
+        const playerBalance = currency === 'levelTokens' ? game.levelTokens : currency === 'prestigePoints' ? prestigePoints : game.points;
+        const canAfford = !isMaxed && !locked && playerBalance >= cost;
 
         let displayName, detailsText;
         if (up.type === 'tier') {
@@ -1450,19 +1543,27 @@
                 ? `${up.baseName} - ${tierLabel(up.level)} (MAX)`
                 : `${up.baseName} to ${tierLabel(up.level + 1)}`;
 
-            const skillBoost = getSkillBoostMultiplier(up.id);
-            const currentBonus = getTierIncomeBonus(up);
-            const currentRaw = up.level > 0 ? up.tierValues[up.level - 1] : 0;
-            const nextRaw = !isMaxed ? up.tierValues[up.level] : null;
-            const nextBonus = !isMaxed ? nextRaw * up.incomeScale * skillBoost : null;
-            const rawStatText = (raw) => up.unitLabel ? ` (${raw} ${up.unitLabel})` : '';
-
-            if (up.level === 0) {
-                detailsText = `${up.description}<br><small style="color:var(--accent-color)">Effect: +${nextBonus.toFixed(2)} TT/s${rawStatText(nextRaw)}</small>`;
-            } else if (isMaxed) {
-                detailsText = `Current tier: ${tierLabel(up.level)}<br><small style="color:var(--accent-color)">Effect: +${currentBonus.toFixed(2)} TT/s${rawStatText(currentRaw)}</small>`;
+            if (locked) {
+                const req = up.levelRequirements[up.level + 1];
+                const reqUp = upgrades.find(u => u.id === req.id);
+                const reqName = getTierDisplayName(reqUp, req.level);
+                const reqNoun = reqUp.baseName.replace(/^Upgrade your /, '');
+                detailsText = `<small style="color:var(--danger-color)">Locked - buy the ${reqName} ${reqNoun} first</small>`;
             } else {
-                detailsText = `Current tier: ${tierLabel(up.level)} (+${currentBonus.toFixed(2)} TT/s)<br><small style="color:var(--accent-color)">Next: +${nextBonus.toFixed(2)} TT/s${rawStatText(nextRaw)}</small>`;
+                const skillBoost = getSkillBoostMultiplier(up.id);
+                const currentBonus = getTierIncomeBonus(up);
+                const currentRaw = up.level > 0 ? up.tierValues[up.level - 1] : 0;
+                const nextRaw = !isMaxed ? up.tierValues[up.level] : null;
+                const nextBonus = !isMaxed ? nextRaw * up.incomeScale * skillBoost : null;
+                const rawStatText = (raw) => up.unitLabel ? ` (${raw} ${up.unitLabel})` : '';
+
+                if (up.level === 0) {
+                    detailsText = `${up.description}<br><small style="color:var(--accent-color)">Effect: +${nextBonus.toFixed(2)} TT/s${rawStatText(nextRaw)}</small>`;
+                } else if (isMaxed) {
+                    detailsText = `Current tier: ${tierLabel(up.level)}<br><small style="color:var(--accent-color)">Effect: +${currentBonus.toFixed(2)} TT/s${rawStatText(currentRaw)}</small>`;
+                } else {
+                    detailsText = `Current tier: ${tierLabel(up.level)} (+${currentBonus.toFixed(2)} TT/s)<br><small style="color:var(--accent-color)">Next: +${nextBonus.toFixed(2)} TT/s${rawStatText(nextRaw)}</small>`;
+                }
             }
         } else if (up.type === 'consumable_double_income') {
             displayName = `${up.name} (Owned: ${up.level})`;
@@ -1475,27 +1576,33 @@
             }
         } else if (up.type === 'skill_income_boost') {
             displayName = `${up.name} (Level ${up.level})`;
-            const currentPct = Math.round(up.level * up.boostPerLevel * 100);
-            const nextPct = Math.round((up.level + 1) * up.boostPerLevel * 100);
-            detailsText = `${up.description}<br><small style="color:var(--accent-color)">${up.targetLabel} income: +${currentPct}% → +${nextPct}%</small>`;
+            const currentPct = up.level * up.boostPerLevel * 100;
+            const nextPct = (up.level + 1) * up.boostPerLevel * 100;
+            detailsText = `${up.description}<br><small style="color:var(--accent-color)">${up.targetLabel} income: +${currentPct.toFixed(1)}% → +${nextPct.toFixed(1)}%</small>`;
+        } else if (up.type === 'prestige_upgrade') {
+            displayName = up.name;
+            detailsText = `${up.description}`;
         } else {
-            let effectText = up.type === 'income' ? `+${up.value} TT/s` : `+${up.value * 100}%`;
-            displayName = `${up.name} (Lvl ${up.level})`;
-            detailsText = `${up.description}<br><small style="color:var(--accent-color)">Effect: ${effectText}</small>`;
+            displayName = up.name || up.baseName;
+            detailsText = up.description || '';
         }
 
         const costLabel = isMaxed
             ? 'MAX'
-            : (currency === 'levelTokens' ? `${cost} Token${cost === 1 ? '' : 's'}` : `${formatTT(cost)} TT`);
+            : locked
+                ? 'Locked'
+                : currency === 'levelTokens' ? `${cost} Token${cost === 1 ? '' : 's'}`
+                : currency === 'prestigePoints' ? `${cost} Point${cost === 1 ? '' : 's'}`
+                : `${formatTT(cost)} TT`;
 
         const card = document.createElement('div');
-        card.className = isMaxed ? 'upgrade-card owned' : 'upgrade-card';
+        card.className = (isMaxed || locked) ? 'upgrade-card owned' : 'upgrade-card';
         card.innerHTML = `
             <div class="upgrade-info">
                 <div class="upgrade-name">${displayName}</div>
                 <div class="upgrade-details">${detailsText}</div>
             </div>
-            <button class="upgrade-btn ${isMaxed ? 'owned-btn' : ''}" ${(isMaxed || !canAfford) ? 'disabled' : ''} onclick="buyUpgrade('${up.id}')">
+            <button class="upgrade-btn ${(isMaxed || locked) ? 'owned-btn' : ''}" ${(isMaxed || locked || !canAfford) ? 'disabled' : ''} onclick="buyUpgrade('${up.id}')">
                 ${costLabel}
             </button>
         `;
@@ -1520,6 +1627,15 @@
         upgrades
             .filter(up => up.type === 'skill_income_boost')
             .forEach(up => container.appendChild(buildUpgradeCard(up)));
+    }
+
+    function renderPrestigeUpgrades() {
+        document.getElementById('prestige-points-count').innerText = prestigePoints;
+
+        const container = document.getElementById('prestige-upgrades-container');
+        container.innerHTML = '';
+
+        prestigeUpgrades.forEach(up => container.appendChild(buildUpgradeCard(up)));
     }
 
     function formatPlayTime(totalSeconds) {
@@ -1556,11 +1672,16 @@
         document.getElementById('stat-weapon-tier').innerText = getTierDisplayName(weaponUpgrade, weaponUpgrade.level);
         document.getElementById('stat-truck-tier').innerText = getTierDisplayName(truckUpgrade, truckUpgrade.level);
         document.getElementById('stat-businesses-owned').innerText = `${ownedBusinessCount} / ${businesses.length}`;
-        document.getElementById('stat-level').innerText = `Lv. ${game.level}`;
-        document.getElementById('stat-exp').innerText = `${formatTT(game.exp)} / ${formatTT(getExpRequiredForLevel(game.level))}`;
-        const expNeeded = getExpRequiredForLevel(game.level);
-        const expPct = expNeeded > 0 ? Math.min(100, (game.exp / expNeeded) * 100) : 0;
-        document.getElementById('exp-bar-fill').style.width = `${expPct}%`;
+        document.getElementById('stat-level').innerText = `Lv. ${game.level}` + (game.level >= MAX_LEVEL ? ' (MAX)' : '');
+        if (game.level >= MAX_LEVEL) {
+            document.getElementById('stat-exp').innerText = 'MAX LEVEL';
+            document.getElementById('exp-bar-fill').style.width = '100%';
+        } else {
+            document.getElementById('stat-exp').innerText = `${formatTT(game.exp)} / ${formatTT(getExpRequiredForLevel(game.level))}`;
+            const expNeeded = getExpRequiredForLevel(game.level);
+            const expPct = expNeeded > 0 ? Math.min(100, (game.exp / expNeeded) * 100) : 0;
+            document.getElementById('exp-bar-fill').style.width = `${expPct}%`;
+        }
         document.getElementById('stat-total-earned').innerText = formatTT(game.totalEarned);
         document.getElementById('stat-lifetime-earnings').innerText = formatTT(lifetimeEarnings);
         document.getElementById('stat-play-time').innerText = formatPlayTime(game.playTimeSeconds);
@@ -1568,38 +1689,50 @@
             ? `${cheapestUnowned.name} - ${formatTT(cheapestUnowned.price)} TT`
             : 'All businesses owned!';
 
-        const { lv100Met, mk14Met, smgMet, roadkillerMet, biz73Met, canPrestige } = getPrestigeStatus();
+        const prestigeStatus = getPrestigeStatus();
+        const { atMaxPrestige, canPrestige } = prestigeStatus;
 
-        document.getElementById('prestige-check-lv100').style.color = lv100Met ? 'var(--accent-gold)' : 'var(--text-muted)';
-        document.getElementById('prestige-check-lv100').innerText = (lv100Met ? '✓' : '❌') + ' Level 100';
-        document.getElementById('prestige-check-mk14').style.color = mk14Met ? 'var(--accent-gold)' : 'var(--text-muted)';
-        document.getElementById('prestige-check-mk14').innerText = (mk14Met ? '✓' : '❌') + ' Trailer MK14';
-        document.getElementById('prestige-check-smg').style.color = smgMet ? 'var(--accent-gold)' : 'var(--text-muted)';
-        document.getElementById('prestige-check-smg').innerText = (smgMet ? '✓' : '❌') + ' SMG Weapon';
-        document.getElementById('prestige-check-roadkiller').style.color = roadkillerMet ? 'var(--accent-gold)' : 'var(--text-muted)';
-        document.getElementById('prestige-check-roadkiller').innerText = (roadkillerMet ? '✓' : '❌') + ' Roadkiller Truck';
-        document.getElementById('prestige-check-biz73').style.color = biz73Met ? 'var(--accent-gold)' : 'var(--text-muted)';
-        document.getElementById('prestige-check-biz73').innerText = (biz73Met ? '✓' : '❌') + ' All 73 Businesses';
+        document.getElementById('prestige-checklist').style.display = atMaxPrestige ? 'none' : '';
+        document.getElementById('prestige-max-message').style.display = atMaxPrestige ? '' : 'none';
+
+        if (!atMaxPrestige) {
+            const { levelMet, trailerMet, weaponMet, truckMet, biz73Met, requiredCharLevel, trailerTier, weaponTierName, truckTierName } = prestigeStatus;
+
+            document.getElementById('prestige-check-level').style.color = levelMet ? 'var(--accent-gold)' : 'var(--text-muted)';
+            document.getElementById('prestige-check-level').innerText = (levelMet ? '✓' : '❌') + ` Level ${requiredCharLevel}`;
+            document.getElementById('prestige-check-trailer').style.color = trailerMet ? 'var(--accent-gold)' : 'var(--text-muted)';
+            document.getElementById('prestige-check-trailer').innerText = (trailerMet ? '✓' : '❌') + ` Trailer MK${trailerTier}`;
+            document.getElementById('prestige-check-weapon').style.color = weaponMet ? 'var(--accent-gold)' : 'var(--text-muted)';
+            document.getElementById('prestige-check-weapon').innerText = (weaponMet ? '✓' : '❌') + ` ${weaponTierName} Weapon`;
+            document.getElementById('prestige-check-truck').style.color = truckMet ? 'var(--accent-gold)' : 'var(--text-muted)';
+            document.getElementById('prestige-check-truck').innerText = (truckMet ? '✓' : '❌') + ` ${truckTierName} Truck`;
+            document.getElementById('prestige-check-biz73').style.color = biz73Met ? 'var(--accent-gold)' : 'var(--text-muted)';
+            document.getElementById('prestige-check-biz73').innerText = (biz73Met ? '✓' : '❌') + ' All 73 Businesses';
+        }
 
         const prestigeBtn = document.getElementById('prestige-btn');
         prestigeBtn.disabled = !canPrestige;
         prestigeBtn.classList.toggle('btn-gold-solid', canPrestige);
         prestigeBtn.classList.toggle('btn-locked', !canPrestige);
-        prestigeBtn.innerText = canPrestige
-            ? `Prestige (${prestigeCount > 0 ? prestigeCount + ' → ' + (prestigeCount + 1) : '1'})`
-            : 'Prestige (locked)';
+        prestigeBtn.innerText = atMaxPrestige
+            ? 'Prestige (MAX)'
+            : canPrestige
+                ? `Prestige (${prestigeCount > 0 ? prestigeCount + ' → ' + (prestigeCount + 1) : '1'})`
+                : 'Prestige (locked)';
 
-        const magicUnlocked = prestigeCount > 0;
-        document.getElementById('tab-btn-magic').style.display = magicUnlocked ? '' : 'none';
-        if (!magicUnlocked && isTabActive('magic')) switchTab('main');
+        const prestigeTabUnlocked = prestigeCount > 0;
+        document.getElementById('tab-btn-prestige').style.display = prestigeTabUnlocked ? '' : 'none';
+        if (!prestigeTabUnlocked && isTabActive('prestige')) switchTab('main');
 
         if (forceFullRerender) {
             if (isTabActive('upgrades')) renderUpgrades();
             if (isTabActive('skills')) renderSkills();
+            if (isTabActive('prestige')) renderPrestigeUpgrades();
             if (isTabActive('businesses')) { renderBusinesses(); updateBusinessesContainerHeight(); }
         } else {
             if (isTabActive('upgrades')) refreshUpgradeAffordability();
             if (isTabActive('skills')) refreshSkillAffordability();
+            if (isTabActive('prestige')) refreshPrestigeAffordability();
             if (isTabActive('businesses')) refreshBusinessAffordability();
         }
     }
@@ -1608,13 +1741,13 @@
         const buttons = container.querySelectorAll('.upgrade-btn');
         items.forEach((up, i) => {
             const btn = buttons[i];
-            if (!btn) return; 
+            if (!btn) return;
             const isMaxed = up.maxLevel && up.level >= up.maxLevel;
-            if (isMaxed) return; 
+            if (isMaxed || !isPrerequisiteMet(up)) return;
 
             const cost = getUpgradeCost(up);
             const currency = up.currency || 'tt';
-            const balance = currency === 'levelTokens' ? game.levelTokens : game.points;
+            const balance = currency === 'levelTokens' ? game.levelTokens : currency === 'prestigePoints' ? prestigePoints : game.points;
             btn.disabled = balance < cost;
         });
     }
@@ -1630,14 +1763,20 @@
         refreshCardAffordability(container, upgrades.filter(up => up.type === 'skill_income_boost'));
     }
 
+    function refreshPrestigeAffordability() {
+        document.getElementById('prestige-points-count').innerText = prestigePoints;
+        const container = document.getElementById('prestige-upgrades-container');
+        refreshCardAffordability(container, prestigeUpgrades);
+    }
+
     function refreshBusinessAffordability() {
         const container = document.getElementById('businesses-container');
         const buttons = container.querySelectorAll('.upgrade-btn');
         businesses.forEach((biz, i) => {
-            if (biz.owned) return; 
+            if (biz.owned) return;
             const btn = buttons[i];
             if (!btn) return;
-            btn.disabled = game.points < biz.price;
+            btn.disabled = game.points < getBusinessPrice(biz);
         });
     }
 
@@ -1656,7 +1795,7 @@
         const bottomPadding = parseFloat(getComputedStyle(container).paddingBottom) || 0;
 
         const available = containerRect.bottom - bizRect.top - bottomPadding;
-        bizContainer.style.maxHeight = Math.max(150, available) + 'px'; 
+        bizContainer.style.maxHeight = Math.max(150, available) + 'px';
     }
 
     function switchTab(tabName) {
@@ -1668,6 +1807,7 @@
 
         if (tabName === 'upgrades') renderUpgrades();
         if (tabName === 'skills') renderSkills();
+        if (tabName === 'prestige') renderPrestigeUpgrades();
         if (tabName === 'businesses') {
             renderBusinesses();
             updateBusinessesContainerHeight();
@@ -1759,7 +1899,7 @@
             startHeight = rect.height;
 
             e.preventDefault();
-            e.stopPropagation(); 
+            e.stopPropagation();
         }
 
         function moveResize(e) {
@@ -1777,7 +1917,7 @@
 
             container.style.width = newWidth + 'px';
             container.style.height = newHeight + 'px';
-            updateBusinessesContainerHeight(); 
+            updateBusinessesContainerHeight();
             e.preventDefault();
         }
 
@@ -1795,7 +1935,7 @@
     }
 
     (async function init() {
-        await loadGame(); 
+        await loadGame();
         updateUI(undefined, true);
         initDragging();
         initResizing();
@@ -1809,7 +1949,7 @@
             lifetimeEarnings += incomePerTick;
             game.playTimeSeconds += 1 / tickRate;
             addExp(incomePerTick);
-            updateUI(incomeRate); 
+            updateUI(incomeRate);
         }, 1000 / tickRate);
 
         setInterval(saveGame, 5000);
