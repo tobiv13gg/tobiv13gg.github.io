@@ -86,9 +86,6 @@
             touch-action: none;
         }
 
-        /* Echoes the same corner-bracket motif used on .stats-panel, just
-           mirrored to the bottom-right so it reads as "grab here to resize"
-           rather than a random decoration. */
         .resize-handle::after {
             content: "";
             position: absolute;
@@ -376,9 +373,6 @@
             border-radius: 4px;
         }
 
-        /* HUD corner brackets - the page's signature motif, echoed more
-           quietly on .stat-box below. Two pseudo-elements, each drawing an
-           L-shaped bracket at opposite corners via two borders. */
         .stats-panel::before,
         .stats-panel::after {
             content: "";
