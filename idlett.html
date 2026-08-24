@@ -37,11 +37,7 @@
         body {
             font-family: var(--font-body);
             font-weight: 500;
-            background-color: var(--bg-color);
-            background-image:
-                repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.012) 0px, rgba(255, 255, 255, 0.012) 1px, transparent 1px, transparent 3px),
-                radial-gradient(ellipse 900px 500px at 15% -10%, rgba(151, 251, 0, 0.10), transparent 60%),
-                radial-gradient(ellipse 900px 500px at 85% 110%, rgba(255, 46, 146, 0.10), transparent 60%);
+            background: transparent;
             color: var(--text-color);
             margin: 0;
             padding: 20px;
@@ -53,14 +49,63 @@
         }
 
         .game-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             width: 100%;
             max-width: 420px;
+            box-sizing: border-box;
             background-color: var(--panel-bg);
             border: 1px solid var(--border-color);
             border-top: 3px solid var(--accent-color);
             border-radius: 4px;
             padding: 25px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            overflow-y: auto;
+        }
+
+        .game-container header {
+            cursor: grab;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        .game-container header.dragging {
+            cursor: grabbing;
+        }
+
+        .resize-handle {
+            position: absolute;
+            right: -1px;
+            bottom: -1px;
+            width: 20px;
+            height: 20px;
+            cursor: nwse-resize;
+            touch-action: none;
+        }
+
+        /* Echoes the same corner-bracket motif used on .stats-panel, just
+           mirrored to the bottom-right so it reads as "grab here to resize"
+           rather than a random decoration. */
+        .resize-handle::after {
+            content: "";
+            position: absolute;
+            right: 3px;
+            bottom: 3px;
+            width: 12px;
+            height: 12px;
+            border-right: 2px solid var(--accent-color);
+            border-bottom: 2px solid var(--accent-color);
+            opacity: 0.5;
+            transition: opacity 0.15s;
+        }
+
+        .resize-handle:hover::after,
+        .resize-handle.resizing::after {
+            opacity: 1;
+            filter: drop-shadow(0 0 4px rgba(151, 251, 0, 0.6));
         }
 
         .tab-nav {
@@ -91,7 +136,8 @@
         }
 
         .tab-btn.active[data-tab="main"],
-        .tab-btn.active[data-tab="upgrades"] {
+        .tab-btn.active[data-tab="upgrades"],
+        .tab-btn.active[data-tab="skills"] {
             color: var(--accent-color);
             border-bottom-color: var(--accent-color);
             text-shadow: 0 0 10px rgba(151, 251, 0, 0.5);
@@ -213,6 +259,20 @@
             text-shadow: 0 0 10px rgba(255, 46, 146, 0.4);
         }
 
+        #skills-tab-header {
+            text-align: center;
+            font-family: var(--font-display);
+            color: var(--accent-color);
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            text-shadow: 0 0 10px rgba(151, 251, 0, 0.4);
+        }
+
+        #skills-tab-header span {
+            font-family: var(--font-hud);
+        }
+
         #businesses-container {
             max-height: 420px;
             overflow-y: auto;
@@ -316,6 +376,9 @@
             border-radius: 4px;
         }
 
+        /* HUD corner brackets - the page's signature motif, echoed more
+           quietly on .stat-box below. Two pseudo-elements, each drawing an
+           L-shaped bracket at opposite corners via two borders. */
         .stats-panel::before,
         .stats-panel::after {
             content: "";
@@ -677,6 +740,7 @@
 <body>
 
 <div class="game-container">
+    <div class="resize-handle" id="resize-handle" title="Drag to resize"></div>
     <header>
         <h1>idle<span class="logo-accent">TT</span></h1>
         <p class="subtitle" id="subtitle-text">Welcome, player. Gotta keep grinding :meow:</p>
@@ -685,6 +749,7 @@
     <div class="tab-nav">
         <button class="tab-btn active" data-tab="main" onclick="switchTab('main')">Stats</button>
         <button class="tab-btn" data-tab="upgrades" onclick="switchTab('upgrades')">Upgrades</button>
+        <button class="tab-btn" data-tab="skills" onclick="switchTab('skills')">Skills</button>
         <button class="tab-btn" data-tab="businesses" onclick="switchTab('businesses')">Businesses</button>
         <button class="tab-btn" data-tab="magic" id="tab-btn-magic" onclick="switchTab('magic')" style="display:none;">Magic</button>
         <button class="tab-btn" data-tab="reset" onclick="switchTab('reset')">Reset</button>
@@ -709,14 +774,22 @@
                 <div class="stat-label">Trailer Tier</div>
             </div>
             <div class="stat-box">
+                <div class="stat-value" id="stat-weapon-tier">Fists</div>
+                <div class="stat-label">Weapon Tier</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="stat-truck-tier">Speedo Express</div>
+                <div class="stat-label">Truck Tier</div>
+            </div>
+            <div class="stat-box">
                 <div class="stat-value" id="stat-businesses-owned">0 / 0</div>
                 <div class="stat-label">Businesses Owned</div>
             </div>
-            <div class="stat-box">
+            <div class="stat-box wide">
                 <div class="stat-value" id="stat-total-earned">0</div>
                 <div class="stat-label">Earned (Since Reset)</div>
             </div>
-            <div class="stat-box">
+            <div class="stat-box wide">
                 <div class="stat-value" id="stat-play-time">00:00:00</div>
                 <div class="stat-label">Play Time</div>
             </div>
@@ -734,6 +807,13 @@
     <div class="tab-content" id="tab-upgrades">
         <div class="upgrades-list" id="upgrades-container">
             <!-- Upgrades generated dynamically by JS -->
+        </div>
+    </div>
+
+    <div class="tab-content" id="tab-skills">
+        <div id="skills-tab-header">SKILLS - <span id="skills-token-count">0</span> Level Tokens</div>
+        <div class="upgrades-list" id="skills-container">
+            <!-- Skills generated dynamically by JS -->
         </div>
     </div>
 
@@ -770,6 +850,8 @@
             <div class="prestige-checklist">
                 <div id="prestige-check-lv100">❌ Level 100</div>
                 <div id="prestige-check-mk14">❌ Trailer MK14</div>
+                <div id="prestige-check-smg">❌ SMG Weapon</div>
+                <div id="prestige-check-roadkiller">❌ Roadkiller Truck</div>
                 <div id="prestige-check-biz73">❌ All 73 Businesses</div>
             </div>
             <button id="prestige-btn" class="reset-btn btn-block btn-locked" disabled onclick="requestPrestige()">Prestige (locked)</button>
@@ -803,7 +885,8 @@
             playTimeSeconds: 0,
             doubleIncomeExpiryPlayTime: 0,
             level: 1,
-            exp: 0
+            exp: 0,
+            levelTokens: 0
         };
     }
 
@@ -821,6 +904,7 @@
         while (game.exp >= requiredForNext) {
             game.exp -= requiredForNext;
             game.level++;
+            game.levelTokens++;
             requiredForNext = getExpRequiredForLevel(game.level);
         }
     }
@@ -829,12 +913,9 @@
 
     let prestigeCount = 0;
 
-    const trailerCapacities = [400, 475, 600, 775, 1000, 1500, 2200, 2500, 2750, 3000, 3500, 5000, 8500, 9000];
-    const CAPACITY_INCOME_SCALE = 0.000275;
+    const BUSINESS_INCOME_RATE = 0.00026; 
 
-    const BUSINESS_INCOME_RATE = 0.000275;
-
-    const LEVEL_INCOME_BONUS_RATE = 0.0075;
+    const LEVEL_INCOME_BONUS_RATE = 0.008;
 
     const EXP_PURCHASE_BONUS_RATE = 0.01;
 
@@ -849,19 +930,98 @@
             id: 'trailer_mk',
             baseName: 'Upgrade your trailer',
             description: 'Upgrade your trailer to the next tier for more cargo capacity, which boosts your passive income',
-            baseCost: 50,
+            baseCost: 55,
             costMultiplier: 1.6,
             level: 0,
             maxLevel: 14,
-            type: 'tier'
+            type: 'tier',
+            tierValues: [400, 475, 600, 775, 1000, 1500, 2200, 2500, 2750, 3000, 3500, 5000, 8500, 9000],
+            incomeScale: 0.00028, 
+            unitLabel: 'kg capacity'
+        },
+        {
+            id: 'weapon_tier',
+            baseName: 'Upgrade your weapon',
+            description: 'Upgrade your weapon to the next tier for more firepower, which boosts your passive income',
+            baseCost: 45,
+            costMultiplier: 1.5,
+            level: 0,
+            maxLevel: 24,
+            type: 'tier',
+            tierZeroName: 'Fists', 
+            tierNames: [
+                'Knife', 'Machete', 'SNS Pistol', 'Combat Pistol', 'AP Pistol',
+                'Heavy Pistol', 'Machine Pistol', 'SMG', 'Combat PDW', 'Gusenberg',
+                'Assault SMG', 'Sawed-Off Shotgun', 'Pump Shotgun', 'Heavy Shotgun',
+                'Assault Rifle', 'Carbine Rifle', 'Special Carbine', 'Marksman Rifle',
+                'Sniper Rifle', 'Heavy Sniper', 'Grenade Launcher', 'RPG', 'Railgun', 'Minigun'
+            ],
+            tierValues: [0.021, 0.026, 0.033, 0.04, 0.049, 0.062, 0.077, 0.096, 0.119, 0.147, 0.183, 0.228, 0.284, 0.352, 0.438, 0.545, 0.677, 0.842, 1.047, 1.302, 1.619, 2.013, 2.503, 3.113],
+            incomeScale: 1
+        },
+        {
+            id: 'truck_tier',
+            baseName: 'Upgrade your truck',
+            description: 'Upgrade your truck to the next tier for a more powerful rig, which boosts your passive income',
+            baseCost: 220,
+            costMultiplier: 2.0, 
+            level: 0,
+            maxLevel: 11,
+            type: 'tier',
+            tierZeroName: 'Speedo Express', 
+            tierNames: [
+                'Voyager', 'Packer', 'Phantom', 'Roadkiller', 'Hauler', 'Ural',
+                'Cerberus', 'Longpath', 'CollinsCo Phantom', 'Phantom Custom', 'Phantom Wedge'
+            ],
+            tierValues: [0.053, 0.084, 0.137, 0.221, 0.357, 0.578, 0.924, 1.502, 2.415, 3.906, 6.3],
+            incomeScale: 1
         },
         {
             id: 'double_income_token',
             name: 'Double Income Token',
             description: 'Doubles ALL income, from every current and future source, for 24 hours of play time. Since EXP is earned from income, this also doubles your leveling speed. Buying another token while one is active extends the remaining duration instead of wasting it.',
-            baseCost: 75000,
+            baseCost: 350000,
             level: 0, 
             type: 'consumable_double_income'
+        },
+        {
+            id: 'skill_trailer_power',
+            name: 'Trailer Power',
+            description: 'Increases your trailer\'s own income by a percentage, on top of its tier bonus.',
+            targetUpgradeId: 'trailer_mk',
+            targetLabel: 'Trailer',
+            boostPerLevel: 0.05, 
+            baseCost: 1,
+            costMultiplier: 1,
+            level: 0,
+            currency: 'levelTokens',
+            type: 'skill_income_boost'
+        },
+        {
+            id: 'skill_weapon_power',
+            name: 'Weapon Power',
+            description: 'Increases your weapon\'s own income by a percentage, on top of its tier bonus.',
+            targetUpgradeId: 'weapon_tier',
+            targetLabel: 'Weapon',
+            boostPerLevel: 0.05,
+            baseCost: 1,
+            costMultiplier: 1,
+            level: 0,
+            currency: 'levelTokens',
+            type: 'skill_income_boost'
+        },
+        {
+            id: 'skill_truck_power',
+            name: 'Truck Power',
+            description: 'Increases your truck\'s own income by a percentage, on top of its tier bonus.',
+            targetUpgradeId: 'truck_tier',
+            targetLabel: 'Truck',
+            boostPerLevel: 0.05,
+            baseCost: 1,
+            costMultiplier: 1,
+            level: 0,
+            currency: 'levelTokens',
+            type: 'skill_income_boost'
         }
     ];
 
@@ -1000,7 +1160,7 @@
                 const result = await window.storage.get(SAVE_KEY);
                 if (result) saved = result.value;
             } catch (e) {
-                saved = null;
+                saved = null; 
             }
         } else {
             try {
@@ -1034,6 +1194,7 @@
                 game.doubleIncomeExpiryPlayTime = sanitizeNumber(savedExpiry, 0);
                 game.level = Math.max(1, Math.floor(sanitizeNumber(parsedData.game.level, 1, 1)));
                 game.exp = sanitizeNumber(parsedData.game.exp, 0);
+                game.levelTokens = Math.max(0, Math.floor(sanitizeNumber(parsedData.game.levelTokens, 0)));
             }
 
             lifetimeEarnings = sanitizeNumber(parsedData.lifetimeEarnings, 0);
@@ -1075,7 +1236,7 @@
         try {
             localStorage.removeItem(SAVE_KEY);
         } catch (e) {
-            
+		
         }
     }
 
@@ -1089,11 +1250,28 @@
         document.getElementById('reset-modal-overlay').classList.add('visible');
     }
 
-    function requestPrestige() {
+    function getPrestigeStatus() {
         const trailerUpgrade = upgrades.find(u => u.id === 'trailer_mk');
+        const weaponUpgrade = upgrades.find(u => u.id === 'weapon_tier');
+        const truckUpgrade = upgrades.find(u => u.id === 'truck_tier');
         const ownedBusinessCount = businesses.filter(b => b.owned).length;
-        const canPrestige = game.level >= 100 && trailerUpgrade.level === 14 && ownedBusinessCount === 73;
-        if (!canPrestige) return;
+        const smgRequiredLevel = weaponUpgrade.tierNames.indexOf('SMG') + 1;
+        const roadkillerRequiredLevel = truckUpgrade.tierNames.indexOf('Roadkiller') + 1;
+
+        const lv100Met = game.level >= 100;
+        const mk14Met = trailerUpgrade.level === trailerUpgrade.maxLevel;
+        const smgMet = weaponUpgrade.level >= smgRequiredLevel;
+        const roadkillerMet = truckUpgrade.level >= roadkillerRequiredLevel;
+        const biz73Met = ownedBusinessCount === businesses.length;
+
+        return {
+            lv100Met, mk14Met, smgMet, roadkillerMet, biz73Met,
+            canPrestige: lv100Met && mk14Met && smgMet && roadkillerMet && biz73Met
+        };
+    }
+
+    function requestPrestige() {
+        if (!getPrestigeStatus().canPrestige) return;
 
         const confirmBtn = document.getElementById('reset-modal-confirm-btn');
         document.getElementById('reset-modal-type').innerText = 'Prestige';
@@ -1115,7 +1293,7 @@
         businesses.forEach(b => b.owned = false);
         prestigeCount = 0;
         cancelReset();
-        updateUI();
+        updateUI(undefined, true);
         await saveGame();
     }
 
@@ -1125,7 +1303,7 @@
         upgrades.forEach(u => u.level = 0);
         businesses.forEach(b => b.owned = false);
         cancelReset();
-        updateUI();
+        updateUI(undefined, true);
         await saveGame(); 
     }
 
@@ -1151,10 +1329,20 @@
         return `${hours}h ${minutes}m`;
     }
 
+    function getSkillBoostMultiplier(targetUpgradeId) {
+        const skill = upgrades.find(u => u.type === 'skill_income_boost' && u.targetUpgradeId === targetUpgradeId);
+        return skill ? 1 + skill.level * skill.boostPerLevel : 1;
+    }
+
     function getTierIncomeBonus(upgrade) {
         if (upgrade.level === 0) return 0;
-        const capacity = trailerCapacities[upgrade.level - 1] || 0;
-        return capacity * CAPACITY_INCOME_SCALE;
+        const rawValue = upgrade.tierValues[upgrade.level - 1] || 0;
+        return rawValue * upgrade.incomeScale * getSkillBoostMultiplier(upgrade.id);
+    }
+
+    function getTierDisplayName(upgrade, level) {
+        if (level <= 0) return upgrade.tierZeroName || 'None';
+        return upgrade.tierNames ? upgrade.tierNames[level - 1] : `MK${level}`;
     }
 
     function getIncomePerSecond() {
@@ -1191,18 +1379,25 @@
         if (upgrade.maxLevel && upgrade.level >= upgrade.maxLevel) return;
 
         const cost = getUpgradeCost(upgrade);
-        if (game.points < cost) return;
+        const currency = upgrade.currency || 'tt';
 
-        game.points -= cost;
-        upgrade.level++;
-        addExp(cost * EXP_PURCHASE_BONUS_RATE); 
+        if (currency === 'levelTokens') {
+            if (game.levelTokens < cost) return;
+            game.levelTokens -= cost;
+            upgrade.level++;
+        } else {
+            if (game.points < cost) return;
+            game.points -= cost;
+            upgrade.level++;
+            addExp(cost * EXP_PURCHASE_BONUS_RATE); 
 
-        if (upgrade.type === 'consumable_double_income') {
-            const extendFrom = Math.max(game.playTimeSeconds, game.doubleIncomeExpiryPlayTime);
-            game.doubleIncomeExpiryPlayTime = extendFrom + DOUBLE_INCOME_DURATION_SECONDS;
+            if (upgrade.type === 'consumable_double_income') {
+                const extendFrom = Math.max(game.playTimeSeconds, game.doubleIncomeExpiryPlayTime);
+                game.doubleIncomeExpiryPlayTime = extendFrom + DOUBLE_INCOME_DURATION_SECONDS;
+            }
         }
 
-        updateUI();
+        updateUI(undefined, true); 
         await saveGame(); 
     }
 
@@ -1217,9 +1412,9 @@
         if (game.points >= business.price) {
             game.points -= business.price;
             business.owned = true;
-            addExp(business.price * EXP_PURCHASE_BONUS_RATE); 
-            updateUI();
-            await saveGame(); 
+            addExp(business.price * EXP_PURCHASE_BONUS_RATE);
+            updateUI(undefined, true); 
+            await saveGame();
         }
     }
 
@@ -1246,61 +1441,91 @@
         });
     }
 
+    function buildUpgradeCard(up) {
+        const isMaxed = up.maxLevel && up.level >= up.maxLevel;
+        const cost = isMaxed ? null : getUpgradeCost(up);
+        const currency = up.currency || 'tt';
+        const playerBalance = currency === 'levelTokens' ? game.levelTokens : game.points;
+        const canAfford = !isMaxed && playerBalance >= cost;
+
+        let displayName, detailsText;
+        if (up.type === 'tier') {
+            const tierLabel = (lvl) => getTierDisplayName(up, lvl);
+
+            displayName = isMaxed
+                ? `${up.baseName} - ${tierLabel(up.level)} (MAX)`
+                : `${up.baseName} to ${tierLabel(up.level + 1)}`;
+
+            const skillBoost = getSkillBoostMultiplier(up.id);
+            const currentBonus = getTierIncomeBonus(up);
+            const currentRaw = up.level > 0 ? up.tierValues[up.level - 1] : 0;
+            const nextRaw = !isMaxed ? up.tierValues[up.level] : null;
+            const nextBonus = !isMaxed ? nextRaw * up.incomeScale * skillBoost : null;
+            const rawStatText = (raw) => up.unitLabel ? ` (${raw} ${up.unitLabel})` : '';
+
+            if (up.level === 0) {
+                detailsText = `${up.description}<br><small style="color:var(--accent-color)">Effect: +${nextBonus.toFixed(2)} TT/s${rawStatText(nextRaw)}</small>`;
+            } else if (isMaxed) {
+                detailsText = `Current tier: ${tierLabel(up.level)}<br><small style="color:var(--accent-color)">Effect: +${currentBonus.toFixed(2)} TT/s${rawStatText(currentRaw)}</small>`;
+            } else {
+                detailsText = `Current tier: ${tierLabel(up.level)} (+${currentBonus.toFixed(2)} TT/s)<br><small style="color:var(--accent-color)">Next: +${nextBonus.toFixed(2)} TT/s${rawStatText(nextRaw)}</small>`;
+            }
+        } else if (up.type === 'consumable_double_income') {
+            displayName = `${up.name} (Owned: ${up.level})`;
+
+            if (isDoubleIncomeActive()) {
+                const remaining = formatDuration(getDoubleIncomeRemainingSeconds());
+                detailsText = `${up.description}<br><small style="color:var(--accent-pink)">Active now: x2 income - ${remaining} remaining</small>`;
+            } else {
+                detailsText = `${up.description}<br><small style="color:var(--accent-color)">Not active - buy one to start doubling income</small>`;
+            }
+        } else if (up.type === 'skill_income_boost') {
+            displayName = `${up.name} (Level ${up.level})`;
+            const currentPct = Math.round(up.level * up.boostPerLevel * 100);
+            const nextPct = Math.round((up.level + 1) * up.boostPerLevel * 100);
+            detailsText = `${up.description}<br><small style="color:var(--accent-color)">${up.targetLabel} income: +${currentPct}% → +${nextPct}%</small>`;
+        } else {
+            let effectText = up.type === 'income' ? `+${up.value} TT/s` : `+${up.value * 100}%`;
+            displayName = `${up.name} (Lvl ${up.level})`;
+            detailsText = `${up.description}<br><small style="color:var(--accent-color)">Effect: ${effectText}</small>`;
+        }
+
+        const costLabel = isMaxed
+            ? 'MAX'
+            : (currency === 'levelTokens' ? `${cost} Token${cost === 1 ? '' : 's'}` : `${formatTT(cost)} TT`);
+
+        const card = document.createElement('div');
+        card.className = isMaxed ? 'upgrade-card owned' : 'upgrade-card';
+        card.innerHTML = `
+            <div class="upgrade-info">
+                <div class="upgrade-name">${displayName}</div>
+                <div class="upgrade-details">${detailsText}</div>
+            </div>
+            <button class="upgrade-btn ${isMaxed ? 'owned-btn' : ''}" ${(isMaxed || !canAfford) ? 'disabled' : ''} onclick="buyUpgrade('${up.id}')">
+                ${costLabel}
+            </button>
+        `;
+        return card;
+    }
+
     function renderUpgrades() {
         const container = document.getElementById('upgrades-container');
         container.innerHTML = '';
 
-        upgrades.forEach(up => {
-            const isMaxed = up.maxLevel && up.level >= up.maxLevel;
-            const cost = isMaxed ? null : getUpgradeCost(up);
-            const canAfford = !isMaxed && game.points >= cost;
+        upgrades
+            .filter(up => up.type !== 'skill_income_boost')
+            .forEach(up => container.appendChild(buildUpgradeCard(up)));
+    }
 
-            let displayName, detailsText;
-            if (up.type === 'tier') {
-                displayName = isMaxed
-                    ? `${up.baseName} - MK${up.level} (MAX)`
-                    : `${up.baseName} to MK${up.level + 1}`;
+    function renderSkills() {
+        document.getElementById('skills-token-count').innerText = game.levelTokens;
 
-                const currentBonus = getTierIncomeBonus(up);
-                const currentCapacity = up.level > 0 ? trailerCapacities[up.level - 1] : 0;
-                const nextCapacity = !isMaxed ? trailerCapacities[up.level] : null;
-                const nextBonus = !isMaxed ? nextCapacity * CAPACITY_INCOME_SCALE : null;
+        const container = document.getElementById('skills-container');
+        container.innerHTML = '';
 
-                if (up.level === 0) {
-                    detailsText = `${up.description}<br><small style="color:var(--accent-color)">Effect: +${nextBonus.toFixed(2)} TT/s (${nextCapacity}kg capacity)</small>`;
-                } else if (isMaxed) {
-                    detailsText = `Current tier: MK${up.level}<br><small style="color:var(--accent-color)">Effect: +${currentBonus.toFixed(2)} TT/s (${currentCapacity}kg capacity)</small>`;
-                } else {
-                    detailsText = `Current tier: MK${up.level} (+${currentBonus.toFixed(2)} TT/s)<br><small style="color:var(--accent-color)">Next: +${nextBonus.toFixed(2)} TT/s (${nextCapacity}kg capacity)</small>`;
-                }
-            } else if (up.type === 'consumable_double_income') {
-                displayName = `${up.name} (Owned: ${up.level})`;
-
-                if (isDoubleIncomeActive()) {
-                    const remaining = formatDuration(getDoubleIncomeRemainingSeconds());
-                    detailsText = `${up.description}<br><small style="color:var(--accent-pink)">Active now: x2 income - ${remaining} remaining</small>`;
-                } else {
-                    detailsText = `${up.description}<br><small style="color:var(--accent-color)">Not active - buy one to start doubling income</small>`;
-                }
-            } else {
-                let effectText = up.type === 'income' ? `+${up.value} TT/s` : `+${up.value * 100}%`;
-                displayName = `${up.name} (Lvl ${up.level})`;
-                detailsText = `${up.description}<br><small style="color:var(--accent-color)">Effect: ${effectText}</small>`;
-            }
-
-            const card = document.createElement('div');
-            card.className = isMaxed ? 'upgrade-card owned' : 'upgrade-card';
-            card.innerHTML = `
-                <div class="upgrade-info">
-                    <div class="upgrade-name">${displayName}</div>
-                    <div class="upgrade-details">${detailsText}</div>
-                </div>
-                <button class="upgrade-btn ${isMaxed ? 'owned-btn' : ''}" ${(isMaxed || !canAfford) ? 'disabled' : ''} onclick="buyUpgrade('${up.id}')">
-                    ${isMaxed ? 'MAX' : formatTT(cost) + ' TT'}
-                </button>
-            `;
-            container.appendChild(card);
-        });
+        upgrades
+            .filter(up => up.type === 'skill_income_boost')
+            .forEach(up => container.appendChild(buildUpgradeCard(up)));
     }
 
     function formatPlayTime(totalSeconds) {
@@ -1312,7 +1537,7 @@
         return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
     }
 
-    function updateUI(precomputedIncome) {
+    function updateUI(precomputedIncome, forceFullRerender) {
         const income = precomputedIncome !== undefined ? precomputedIncome : getIncomePerSecond();
         document.getElementById('points-display').innerText = game.points.toFixed(1);
         document.getElementById('income-display').innerText = `+${income.toFixed(2)} TT/s`;
@@ -1326,12 +1551,16 @@
         }
 
         const trailerUpgrade = upgrades.find(u => u.id === 'trailer_mk');
+        const weaponUpgrade = upgrades.find(u => u.id === 'weapon_tier');
+        const truckUpgrade = upgrades.find(u => u.id === 'truck_tier');
         const ownedBusinessCount = businesses.filter(b => b.owned).length;
         const cheapestUnowned = businesses
             .filter(b => !b.owned)
             .sort((a, b) => a.price - b.price)[0];
 
         document.getElementById('stat-trailer-tier').innerText = `MK${trailerUpgrade.level} / ${trailerUpgrade.maxLevel}`;
+        document.getElementById('stat-weapon-tier').innerText = getTierDisplayName(weaponUpgrade, weaponUpgrade.level);
+        document.getElementById('stat-truck-tier').innerText = getTierDisplayName(truckUpgrade, truckUpgrade.level);
         document.getElementById('stat-businesses-owned').innerText = `${ownedBusinessCount} / ${businesses.length}`;
         document.getElementById('stat-level').innerText = `Lv. ${game.level}`;
         document.getElementById('stat-exp').innerText = `${formatTT(game.exp)} / ${formatTT(getExpRequiredForLevel(game.level))}`;
@@ -1345,16 +1574,16 @@
             ? `${cheapestUnowned.name} - ${formatTT(cheapestUnowned.price)} TT`
             : 'All businesses owned!';
 
-        
-        const lv100Met = game.level >= 100;
-        const mk14Met = trailerUpgrade.level === 14;
-        const biz73Met = ownedBusinessCount === 73;
-        const canPrestige = lv100Met && mk14Met && biz73Met;
+        const { lv100Met, mk14Met, smgMet, roadkillerMet, biz73Met, canPrestige } = getPrestigeStatus();
 
         document.getElementById('prestige-check-lv100').style.color = lv100Met ? 'var(--accent-gold)' : 'var(--text-muted)';
         document.getElementById('prestige-check-lv100').innerText = (lv100Met ? '✓' : '❌') + ' Level 100';
         document.getElementById('prestige-check-mk14').style.color = mk14Met ? 'var(--accent-gold)' : 'var(--text-muted)';
         document.getElementById('prestige-check-mk14').innerText = (mk14Met ? '✓' : '❌') + ' Trailer MK14';
+        document.getElementById('prestige-check-smg').style.color = smgMet ? 'var(--accent-gold)' : 'var(--text-muted)';
+        document.getElementById('prestige-check-smg').innerText = (smgMet ? '✓' : '❌') + ' SMG Weapon';
+        document.getElementById('prestige-check-roadkiller').style.color = roadkillerMet ? 'var(--accent-gold)' : 'var(--text-muted)';
+        document.getElementById('prestige-check-roadkiller').innerText = (roadkillerMet ? '✓' : '❌') + ' Roadkiller Truck';
         document.getElementById('prestige-check-biz73').style.color = biz73Met ? 'var(--accent-gold)' : 'var(--text-muted)';
         document.getElementById('prestige-check-biz73').innerText = (biz73Met ? '✓' : '❌') + ' All 73 Businesses';
 
@@ -1370,13 +1599,70 @@
         document.getElementById('tab-btn-magic').style.display = magicUnlocked ? '' : 'none';
         if (!magicUnlocked && isTabActive('magic')) switchTab('main');
 
-        if (isTabActive('upgrades')) renderUpgrades();
-        if (isTabActive('businesses')) renderBusinesses();
+        if (forceFullRerender) {
+            if (isTabActive('upgrades')) renderUpgrades();
+            if (isTabActive('skills')) renderSkills();
+            if (isTabActive('businesses')) { renderBusinesses(); updateBusinessesContainerHeight(); }
+        } else {
+            if (isTabActive('upgrades')) refreshUpgradeAffordability();
+            if (isTabActive('skills')) refreshSkillAffordability();
+            if (isTabActive('businesses')) refreshBusinessAffordability();
+        }
+    }
+
+    function refreshCardAffordability(container, items) {
+        const buttons = container.querySelectorAll('.upgrade-btn');
+        items.forEach((up, i) => {
+            const btn = buttons[i];
+            if (!btn) return; 
+            const isMaxed = up.maxLevel && up.level >= up.maxLevel;
+            if (isMaxed) return; 
+
+            const cost = getUpgradeCost(up);
+            const currency = up.currency || 'tt';
+            const balance = currency === 'levelTokens' ? game.levelTokens : game.points;
+            btn.disabled = balance < cost;
+        });
+    }
+
+    function refreshUpgradeAffordability() {
+        const container = document.getElementById('upgrades-container');
+        refreshCardAffordability(container, upgrades.filter(up => up.type !== 'skill_income_boost'));
+    }
+
+    function refreshSkillAffordability() {
+        document.getElementById('skills-token-count').innerText = game.levelTokens;
+        const container = document.getElementById('skills-container');
+        refreshCardAffordability(container, upgrades.filter(up => up.type === 'skill_income_boost'));
+    }
+
+    function refreshBusinessAffordability() {
+        const container = document.getElementById('businesses-container');
+        const buttons = container.querySelectorAll('.upgrade-btn');
+        businesses.forEach((biz, i) => {
+            if (biz.owned) return; 
+            const btn = buttons[i];
+            if (!btn) return;
+            btn.disabled = game.points < biz.price;
+        });
     }
 
     function isTabActive(tabName) {
         const tab = document.getElementById('tab-' + tabName);
         return !!tab && tab.classList.contains('active');
+    }
+
+    function updateBusinessesContainerHeight() {
+        if (!isTabActive('businesses')) return;
+
+        const container = document.querySelector('.game-container');
+        const bizContainer = document.getElementById('businesses-container');
+        const containerRect = container.getBoundingClientRect();
+        const bizRect = bizContainer.getBoundingClientRect();
+        const bottomPadding = parseFloat(getComputedStyle(container).paddingBottom) || 0;
+
+        const available = containerRect.bottom - bizRect.top - bottomPadding;
+        bizContainer.style.maxHeight = Math.max(150, available) + 'px'; 
     }
 
     function switchTab(tabName) {
@@ -1387,12 +1673,138 @@
         document.querySelector(`.tab-btn[data-tab="${tabName}"]`).classList.add('active');
 
         if (tabName === 'upgrades') renderUpgrades();
-        if (tabName === 'businesses') renderBusinesses();
+        if (tabName === 'skills') renderSkills();
+        if (tabName === 'businesses') {
+            renderBusinesses();
+            updateBusinessesContainerHeight();
+        }
+    }
+
+    function initDragging() {
+        const container = document.querySelector('.game-container');
+        const handle = container.querySelector('header');
+        let isDragging = false;
+        let startPointerX = 0;
+        let startPointerY = 0;
+        let startLeft = 0;
+        let startTop = 0;
+
+        function beginDrag(e) {
+            const point = e.touches ? e.touches[0] : e;
+            isDragging = true;
+            handle.classList.add('dragging');
+
+            const rect = container.getBoundingClientRect();
+            container.style.left = rect.left + 'px';
+            container.style.top = rect.top + 'px';
+            container.style.transform = 'none';
+
+            startPointerX = point.clientX;
+            startPointerY = point.clientY;
+            startLeft = rect.left;
+            startTop = rect.top;
+
+            e.preventDefault();
+        }
+
+        function moveDrag(e) {
+            if (!isDragging) return;
+            const point = e.touches ? e.touches[0] : e;
+            const dx = point.clientX - startPointerX;
+            const dy = point.clientY - startPointerY;
+
+            const rect = container.getBoundingClientRect();
+            const minVisible = 40;
+            const newLeft = Math.max(minVisible - rect.width, Math.min(startLeft + dx, window.innerWidth - minVisible));
+            const newTop = Math.max(0, Math.min(startTop + dy, window.innerHeight - minVisible));
+
+            container.style.left = newLeft + 'px';
+            container.style.top = newTop + 'px';
+            e.preventDefault();
+        }
+
+        function endDrag() {
+            isDragging = false;
+            handle.classList.remove('dragging');
+        }
+
+        handle.addEventListener('mousedown', beginDrag);
+        handle.addEventListener('touchstart', beginDrag, { passive: false });
+        window.addEventListener('mousemove', moveDrag);
+        window.addEventListener('touchmove', moveDrag, { passive: false });
+        window.addEventListener('mouseup', endDrag);
+        window.addEventListener('touchend', endDrag);
+    }
+
+    function initResizing() {
+        const container = document.querySelector('.game-container');
+        const handle = document.getElementById('resize-handle');
+        let isResizing = false;
+        let startPointerX = 0;
+        let startPointerY = 0;
+        let startWidth = 0;
+        let startHeight = 0;
+
+        const MIN_WIDTH = 300;
+        const MIN_HEIGHT = 340;
+
+        function beginResize(e) {
+            const point = e.touches ? e.touches[0] : e;
+            isResizing = true;
+            handle.classList.add('resizing');
+
+            const rect = container.getBoundingClientRect();
+            container.style.left = rect.left + 'px';
+            container.style.top = rect.top + 'px';
+            container.style.transform = 'none';
+            container.style.maxWidth = 'none';
+
+            startPointerX = point.clientX;
+            startPointerY = point.clientY;
+            startWidth = rect.width;
+            startHeight = rect.height;
+
+            e.preventDefault();
+            e.stopPropagation(); 
+        }
+
+        function moveResize(e) {
+            if (!isResizing) return;
+            const point = e.touches ? e.touches[0] : e;
+            const dx = point.clientX - startPointerX;
+            const dy = point.clientY - startPointerY;
+
+            const rect = container.getBoundingClientRect();
+            const maxWidth = Math.max(MIN_WIDTH, window.innerWidth - rect.left - 10);
+            const maxHeight = Math.max(MIN_HEIGHT, window.innerHeight - rect.top - 10);
+
+            const newWidth = Math.max(MIN_WIDTH, Math.min(maxWidth, startWidth + dx));
+            const newHeight = Math.max(MIN_HEIGHT, Math.min(maxHeight, startHeight + dy));
+
+            container.style.width = newWidth + 'px';
+            container.style.height = newHeight + 'px';
+            updateBusinessesContainerHeight(); 
+            e.preventDefault();
+        }
+
+        function endResize() {
+            isResizing = false;
+            handle.classList.remove('resizing');
+        }
+
+        handle.addEventListener('mousedown', beginResize);
+        handle.addEventListener('touchstart', beginResize, { passive: false });
+        window.addEventListener('mousemove', moveResize);
+        window.addEventListener('touchmove', moveResize, { passive: false });
+        window.addEventListener('mouseup', endResize);
+        window.addEventListener('touchend', endResize);
     }
 
     (async function init() {
-        await loadGame(); // Load old save on startup
-        updateUI();
+        await loadGame(); 
+        updateUI(undefined, true);
+        initDragging();
+        initResizing();
 
         const tickRate = 2;
         setInterval(() => {
@@ -1410,7 +1822,6 @@
     })();
 
     window.addEventListener('beforeunload', saveGame);
-
     window.switchTab = switchTab;
     window.requestHardReset = requestHardReset;
     window.requestPrestige = requestPrestige;
