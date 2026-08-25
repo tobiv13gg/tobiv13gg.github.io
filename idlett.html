@@ -876,6 +876,11 @@
         return upg && upg.level > 0 ? upg.expMultiplier : 1;
     }
 
+    function getBonusTokensPerLevel() {
+        const upg = prestigeUpgrades.find(u => u.id === 'prestige_extra_level_token');
+        return upg && upg.level > 0 ? upg.bonusTokensPerLevel : 0;
+    }
+
     function addExp(amount) {
         if (!isFinite(amount) || amount <= 0) return;
         if (game.level >= MAX_LEVEL) return;
@@ -886,7 +891,7 @@
         while (game.level < MAX_LEVEL && game.exp >= requiredForNext) {
             game.exp -= requiredForNext;
             game.level++;
-            game.levelTokens++;
+            game.levelTokens += 1 + getBonusTokensPerLevel();
             if (game.level >= MAX_LEVEL) {
                 game.exp = 0;
                 break;
@@ -936,12 +941,48 @@
             currency: 'prestigePoints',
             type: 'prestige_upgrade',
             expMultiplier: 2
+        },
+        {
+            id: 'prestige_extra_level_token',
+            name: 'Extra Level Token',
+            description: 'Grants 1 additional Level Token every time you level up.',
+            baseCost: 1,
+            costMultiplier: 1,
+            level: 0,
+            maxLevel: 1,
+            currency: 'prestigePoints',
+            type: 'prestige_upgrade',
+            bonusTokensPerLevel: 1
+        },
+        {
+            id: 'prestige_business_boost',
+            name: 'Business Boost',
+            description: 'Increases income from businesses by 15%.',
+            baseCost: 1,
+            costMultiplier: 1,
+            level: 0,
+            maxLevel: 1,
+            currency: 'prestigePoints',
+            type: 'prestige_upgrade',
+            boostAmount: 0.15
+        },
+        {
+            id: 'prestige_power',
+            name: 'Prestige Power',
+            description: 'Increases the income bonus granted by each Prestige level from +100% to +150%.',
+            baseCost: 1,
+            costMultiplier: 1,
+            level: 0,
+            maxLevel: 1,
+            currency: 'prestigePoints',
+            type: 'prestige_upgrade',
+            bonusRate: 1.5
         }
     ];
 
     const PRESTIGE_INCOME_BONUS_RATE = 1.0;
 
-    const BUSINESS_INCOME_RATE = 0.00026;
+    const BUSINESS_INCOME_RATE = 0.000185;
 
     const LEVEL_INCOME_BONUS_RATE = 0.008;
 
@@ -967,10 +1008,10 @@
             incomeScale: 0.00028,
             unitLabel: 'kg capacity',
             levelRequirements: {
-                1: { id: 'truck_tier', level: 1 },
-                4: { id: 'truck_tier', level: 3 },
-                8: { id: 'truck_tier', level: 6 },
-                12: { id: 'truck_tier', level: 9 }
+                1: { id: 'truck_tier', level: 2 },
+                4: { id: 'truck_tier', level: 4 },
+                8: { id: 'truck_tier', level: 7 },
+                12: { id: 'truck_tier', level: 10 }
             }
         },
         {
@@ -1000,14 +1041,15 @@
             baseCost: 220,
             costMultiplier: 2.0,
             level: 0,
-            maxLevel: 11,
+            maxLevel: 12,
             type: 'tier',
-            tierZeroName: 'Speedo Express',
+            tierZeroName: 'None',
+            firstTierCost: 10,
             tierNames: [
-                'Voyager', 'Packer', 'Phantom', 'Roadkiller', 'Hauler', 'Ural',
+                'Speedo Express', 'Voyager', 'Packer', 'Phantom', 'Roadkiller', 'Hauler', 'Ural',
                 'Cerberus', 'Longpath', 'CollinsCo Phantom', 'Phantom Custom', 'Phantom Wedge'
             ],
-            tierValues: [0.053, 0.084, 0.137, 0.221, 0.357, 0.578, 0.924, 1.502, 2.415, 3.906, 6.3],
+            tierValues: [0.02, 0.053, 0.084, 0.137, 0.221, 0.357, 0.578, 0.924, 1.502, 2.415, 3.906, 6.3],
             incomeScale: 1
         },
         {
@@ -1370,12 +1412,25 @@
         return upg && upg.level > 0 ? 1 + upg.boostAmount : 1;
     }
 
+    function getBusinessBoostMultiplier() {
+        const upg = prestigeUpgrades.find(u => u.id === 'prestige_business_boost');
+        return upg && upg.level > 0 ? 1 + upg.boostAmount : 1;
+    }
+
+    function getPrestigeBonusRate() {
+        const upg = prestigeUpgrades.find(u => u.id === 'prestige_power');
+        return upg && upg.level > 0 ? upg.bonusRate : PRESTIGE_INCOME_BONUS_RATE;
+    }
+
     function getUpgradeCost(upgrade) {
         let cost;
         if (upgrade.type === 'consumable_double_income') {
             cost = Math.floor(upgrade.baseCost * (1 + Math.log(1 + upgrade.level)));
+        } else if (upgrade.firstTierCost !== undefined && upgrade.level === 0) {
+            cost = upgrade.firstTierCost;
         } else {
-            cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, upgrade.level));
+            const exponent = upgrade.firstTierCost !== undefined ? upgrade.level - 1 : upgrade.level;
+            cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, exponent));
         }
         if ((upgrade.currency || 'tt') === 'tt') {
             cost = Math.floor(cost * getCostReductionMultiplier());
@@ -1429,14 +1484,14 @@
 
         let businessIncome = businesses
             .filter(b => b.owned)
-            .reduce((sum, b) => sum + (b.price * BUSINESS_INCOME_RATE), 0);
+            .reduce((sum, b) => sum + (b.price * BUSINESS_INCOME_RATE), 0) * getBusinessBoostMultiplier();
 
         let total = game.baseIncome + tierIncome + businessIncome;
 
         const levelBonus = 1 + (game.level * LEVEL_INCOME_BONUS_RATE);
         total *= levelBonus;
 
-        const prestigeBonus = 1 + (prestigeCount * PRESTIGE_INCOME_BONUS_RATE);
+        const prestigeBonus = 1 + (prestigeCount * getPrestigeBonusRate());
         total *= prestigeBonus;
 
         total *= getPrestigeIncomeBoostMultiplier();
