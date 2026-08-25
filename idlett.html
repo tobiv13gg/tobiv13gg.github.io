@@ -140,6 +140,12 @@
             text-shadow: 0 0 10px rgba(151, 251, 0, 0.5);
         }
 
+        .tab-btn.active[data-tab="stats"] {
+            color: var(--accent-cyan);
+            border-bottom-color: var(--accent-cyan);
+            text-shadow: 0 0 10px rgba(31, 214, 242, 0.5);
+        }
+
         .tab-btn.active[data-tab="businesses"] {
             color: var(--accent-pink);
             border-bottom-color: var(--accent-pink);
@@ -226,6 +232,40 @@
             font-weight: 700;
             color: var(--accent-cyan);
             letter-spacing: 0.3px;
+        }
+
+        .guide-box {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--accent-color);
+            border-radius: 4px;
+            padding: 15px;
+        }
+
+        .guide-title {
+            font-family: var(--font-display);
+            color: var(--accent-color);
+            font-size: 1.1rem;
+            letter-spacing: 1.5px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 8px rgba(151, 251, 0, 0.3);
+        }
+
+        .guide-list {
+            margin: 0;
+            padding-left: 18px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .guide-list li {
+            margin-bottom: 6px;
+        }
+
+        .guide-list li:last-child {
+            margin-bottom: 0;
         }
 
         .exp-bar-track {
@@ -721,7 +761,8 @@
     </header>
 
     <div class="tab-nav">
-        <button class="tab-btn active" data-tab="main" onclick="switchTab('main')">Stats</button>
+        <button class="tab-btn active" data-tab="main" onclick="switchTab('main')">Game</button>
+        <button class="tab-btn" data-tab="stats" onclick="switchTab('stats')">Stats</button>
         <button class="tab-btn" data-tab="upgrades" onclick="switchTab('upgrades')">Upgrades</button>
         <button class="tab-btn" data-tab="skills" onclick="switchTab('skills')">Skills</button>
         <button class="tab-btn" data-tab="businesses" onclick="switchTab('businesses')">Businesses</button>
@@ -760,6 +801,27 @@
                 <div class="stat-label">Businesses Owned</div>
             </div>
             <div class="stat-box wide">
+                <div class="stat-value-text" id="stat-next-goal">-</div>
+                <div class="stat-label">Next Business Goal</div>
+            </div>
+        </div>
+
+        <div class="guide-box">
+            <div class="guide-title">How to Play</div>
+            <ul class="guide-list">
+                <li>you earn TT/s passively - no clicking!</li>
+                <li>your main goal during the run is to collect all businesses</li>
+                <li>use your TT to buy Weapons, Trucks and Trailers - it all gives a slight boost to your income, but does not serve other purposes</li>
+                <li>Trailer needs Truck to be usable, you need to buy it first</li>
+                <li>better Trailers need better Trucks</li>
+                <li>don't be afraid to Prestige, it's relatively easy to reach and gives big boost in the new run (like a New Game+)</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="tab-content" id="tab-stats">
+        <div class="stats-grid">
+            <div class="stat-box wide">
                 <div class="stat-value" id="stat-total-earned">0</div>
                 <div class="stat-label">Earned (Since Reset)</div>
             </div>
@@ -770,10 +832,6 @@
             <div class="stat-box wide">
                 <div class="stat-value" id="stat-lifetime-earnings">0</div>
                 <div class="stat-label">Total Lifetime Earnings</div>
-            </div>
-            <div class="stat-box wide">
-                <div class="stat-value-text" id="stat-next-goal">-</div>
-                <div class="stat-label">Next Business Goal</div>
             </div>
         </div>
     </div>
