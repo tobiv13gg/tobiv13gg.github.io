@@ -756,6 +756,101 @@
             font-family: var(--font-hud);
         }
 
+        #achievements-tab-header {
+            text-align: center;
+            font-family: var(--font-display);
+            color: var(--accent-color);
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            text-shadow: 0 0 10px rgba(151, 251, 0, 0.4);
+        }
+
+        .achievement-card {
+            background-color: var(--panel-bg-alt);
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--border-color);
+            border-radius: 4px;
+            padding: 15px;
+            transition: border-left-color 0.2s ease;
+        }
+
+        .achievement-card.achievement-maxed {
+            border-left-color: var(--accent-gold);
+        }
+
+        .achievement-name {
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 4px;
+        }
+
+        .achievement-current {
+            font-family: var(--font-hud);
+            color: var(--accent-cyan);
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+
+        .achievement-next {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+
+        .achievement-maxed .achievement-next {
+            color: var(--accent-gold);
+        }
+
+        .achievement-tier-track {
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .achievement-tier-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--accent-color-dark), var(--accent-color));
+            box-shadow: 0 0 6px rgba(151, 251, 0, 0.6);
+            transition: width 0.3s ease;
+        }
+
+        .achievement-maxed .achievement-tier-fill {
+            background: linear-gradient(90deg, #ffd876, var(--accent-gold));
+            box-shadow: 0 0 6px rgba(255, 201, 77, 0.6);
+        }
+
+        .secret-squares {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .secret-square {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px dashed var(--accent-super);
+            border-radius: 4px;
+            background: rgba(185, 103, 255, 0.06);
+            color: var(--accent-super);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .secret-square-unlocked {
+            border-style: solid;
+            border-color: var(--accent-gold);
+            background: rgba(255, 201, 77, 0.1);
+            color: var(--accent-gold);
+        }
+
         .reset-tab-intro {
             text-align: center;
             padding: 4px 0 20px;
@@ -1047,11 +1142,8 @@
     </div>
 
     <div class="tab-content" id="tab-achievements">
-        <div class="placeholder-box">
-            <div class="placeholder-stripe"></div>
-            <div class="placeholder-title">Achievements</div>
-            <p class="placeholder-text">Coming soon.</p>
-        </div>
+        <div id="achievements-tab-header">🏆 ACHIEVEMENTS</div>
+        <div class="upgrades-list" id="achievements-container"></div>
     </div>
 
     <div class="tab-content" id="tab-prestige">
@@ -1210,6 +1302,11 @@
     }
 
     let lifetimeEarnings = 0;
+    let highestIncomePerSecond = 0;
+    let highestTotalEarnedInRun = 0;
+    let highestBusinessesOwnedInRun = 0;
+    let highestLevelInRun = 0;
+    let highestPrestigeCountReached = 0;
 
     let prestigeCount = 0;
     let prestigePoints = 0;
@@ -1513,6 +1610,12 @@
         const saveData = {
             game: game,
             lifetimeEarnings: lifetimeEarnings,
+            highestIncomePerSecond: highestIncomePerSecond,
+            highestTotalEarnedInRun: highestTotalEarnedInRun,
+            highestBusinessesOwnedInRun: highestBusinessesOwnedInRun,
+            highestLevelInRun: highestLevelInRun,
+            highestPrestigeCountReached: highestPrestigeCountReached,
+            secretAchievementUnlocks: ACHIEVEMENTS.filter(a => a.type === 'secret').map(a => ({ id: a.id, unlocked: a.unlocked })),
             prestigeCount: prestigeCount,
             prestigePoints: prestigePoints,
             superPrestigeCount: superPrestigeCount,
@@ -1587,6 +1690,20 @@
             }
 
             lifetimeEarnings = sanitizeNumber(parsedData.lifetimeEarnings, 0);
+            highestIncomePerSecond = sanitizeNumber(parsedData.highestIncomePerSecond, 0, 0);
+            highestTotalEarnedInRun = sanitizeNumber(parsedData.highestTotalEarnedInRun, 0, 0);
+            highestBusinessesOwnedInRun = sanitizeNumber(parsedData.highestBusinessesOwnedInRun, 0, 0);
+            highestLevelInRun = sanitizeNumber(parsedData.highestLevelInRun, 0, 0);
+            highestPrestigeCountReached = sanitizeNumber(parsedData.highestPrestigeCountReached, 0, 0);
+
+            if (Array.isArray(parsedData.secretAchievementUnlocks)) {
+                parsedData.secretAchievementUnlocks.forEach(saved => {
+                    const ach = ACHIEVEMENTS.find(a => a.id === saved.id && a.type === 'secret');
+                    if (ach && Array.isArray(saved.unlocked)) {
+                        ach.unlocked = ach.unlocked.map((_, i) => !!saved.unlocked[i]);
+                    }
+                });
+            }
 
             prestigeCount = sanitizeNumber(parsedData.prestigeCount, 0);
             prestigePoints = sanitizeNumber(parsedData.prestigePoints, 0);
@@ -1643,6 +1760,79 @@
     ];
 
     const MAX_PRESTIGE_LEVEL = 7;
+
+    const ACHIEVEMENTS = [
+        {
+            id: 'income_milestones',
+            name: 'Income Milestones',
+            unit: 'TT/s',
+            tiers: [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2000, 5000, 10000, 25000, 50000, 100000],
+            getValue: () => highestIncomePerSecond
+        },
+        {
+            id: 'earned_since_reset_milestones',
+            name: 'TT Earned Since Reset',
+            unit: 'TT',
+            tiers: [1, 10, 25, 50, 100, 250, 500, 1000, 2000, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000, 2000000, 5000000, 10000000, 25000000, 50000000, 100000000, 250000000, 500000000, 750000000, 1000000000, 2000000000, 3000000000, 4000000000, 5000000000],
+            getValue: () => highestTotalEarnedInRun
+        },
+        {
+            id: 'businesses_purchased_milestones',
+            name: 'Businesses Purchased',
+            unit: '',
+            tiers: [1, 3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 67, 73],
+            getValue: () => highestBusinessesOwnedInRun
+        },
+        {
+            id: 'level_reached_milestones',
+            name: 'Level Reached',
+            unit: '',
+            tiers: [100, 200, 300, 400, 500, 600, 632],
+            getValue: () => highestLevelInRun
+        },
+        {
+            id: 'prestige_reached_milestones',
+            name: 'Prestige Reached',
+            unit: '',
+            tiers: [1, 2, 3, 4, 5, 6, 7],
+            getValue: () => highestPrestigeCountReached
+        },
+        {
+            id: 'secret_mystery_1',
+            name: '???',
+            type: 'secret',
+            slots: 2,
+            unlocked: [false, false]
+        }
+    ];
+
+    function getAchievementTierCount(achievement) {
+        const value = achievement.getValue();
+        let count = 0;
+        for (const tier of achievement.tiers) {
+            if (value >= tier) count++;
+            else break;
+        }
+        return count;
+    }
+
+    function getAchievementUnlockedCount(achievement) {
+        if (achievement.type === 'secret') return achievement.unlocked.filter(Boolean).length;
+        return getAchievementTierCount(achievement);
+    }
+
+    function getAchievementTotalCount(achievement) {
+        if (achievement.type === 'secret') return achievement.slots;
+        return achievement.tiers.length;
+    }
+
+    function getTotalAchievementTiersUnlocked() {
+        return ACHIEVEMENTS.reduce((sum, a) => sum + getAchievementUnlockedCount(a), 0);
+    }
+
+    function getTotalAchievementTiersAvailable() {
+        return ACHIEVEMENTS.reduce((sum, a) => sum + getAchievementTotalCount(a), 0);
+    }
 
     function getPrestigeStatus() {
         if (prestigeCount >= MAX_PRESTIGE_LEVEL) {
@@ -1726,6 +1916,11 @@
 
     async function confirmHardReset() {
         lifetimeEarnings = 0;
+        highestIncomePerSecond = 0;
+        highestTotalEarnedInRun = 0;
+        highestBusinessesOwnedInRun = 0;
+        highestLevelInRun = 0;
+        highestPrestigeCountReached = 0;
         game = createDefaultGameState();
         upgrades.forEach(u => u.level = 0);
         businesses.forEach(b => b.owned = false);
@@ -2084,6 +2279,70 @@
         prestigeUpgrades.forEach(up => container.appendChild(buildUpgradeCard(up)));
     }
 
+    function buildAchievementCard(achievement) {
+        const card = document.createElement('div');
+        card.className = 'achievement-card';
+        card.dataset.achievementId = achievement.id;
+
+        if (achievement.type === 'secret') {
+            card.innerHTML = `
+                <div class="achievement-name">${achievement.name}</div>
+                <div class="secret-squares"></div>
+            `;
+        } else {
+            card.innerHTML = `
+                <div class="achievement-name">${achievement.name}</div>
+                <div class="achievement-current"></div>
+                <div class="achievement-next"></div>
+                <div class="achievement-tier-track"><div class="achievement-tier-fill"></div></div>
+            `;
+        }
+
+        updateAchievementCard(card, achievement);
+        return card;
+    }
+
+    function updateAchievementCard(card, achievement) {
+        if (achievement.type === 'secret') {
+            const squares = achievement.unlocked
+                .map(isUnlocked => `<div class="secret-square${isUnlocked ? ' secret-square-unlocked' : ''}">${isUnlocked ? '✓' : '?'}</div>`)
+                .join('');
+            card.querySelector('.secret-squares').innerHTML = squares;
+            card.classList.toggle('achievement-maxed', achievement.unlocked.every(Boolean));
+            return;
+        }
+
+        const tierCount = getAchievementTierCount(achievement);
+        const maxed = tierCount >= achievement.tiers.length;
+        const value = achievement.getValue();
+
+        card.classList.toggle('achievement-maxed', maxed);
+        card.querySelector('.achievement-current').innerText = `Current: ${formatTT(value)} ${achievement.unit}`;
+        card.querySelector('.achievement-next').innerText = maxed
+            ? `All ${achievement.tiers.length} tiers unlocked!`
+            : `Next: ${formatTT(achievement.tiers[tierCount])} ${achievement.unit} (Tier ${tierCount + 1}/${achievement.tiers.length})`;
+
+        const prevTier = tierCount > 0 ? achievement.tiers[tierCount - 1] : 0;
+        const nextTier = maxed ? prevTier : achievement.tiers[tierCount];
+        const span = nextTier - prevTier;
+        const pct = maxed ? 100 : (span > 0 ? ((value - prevTier) / span) * 100 : 0);
+        card.querySelector('.achievement-tier-fill').style.width = Math.max(0, Math.min(100, pct)) + '%';
+    }
+
+    function renderAchievements() {
+        const container = document.getElementById('achievements-container');
+        container.innerHTML = '';
+        ACHIEVEMENTS.forEach(a => container.appendChild(buildAchievementCard(a)));
+    }
+
+    function refreshAchievementsDisplay() {
+        const container = document.getElementById('achievements-container');
+        ACHIEVEMENTS.forEach(a => {
+            const card = container.querySelector(`[data-achievement-id="${a.id}"]`);
+            if (card) updateAchievementCard(card, a);
+        });
+    }
+
     function formatPlayTime(totalSeconds) {
         const s = Math.floor(totalSeconds);
         const hours = Math.floor(s / 3600);
@@ -2120,7 +2379,6 @@
         document.getElementById('stat-businesses-owned').innerText = `${ownedBusinessCount} / ${businesses.length}`;
         document.getElementById('stat-businesses-owned-summary').innerText = `${ownedBusinessCount} / ${businesses.length}`;
         document.getElementById('stat-upgrades-bought').innerText = upgrades.reduce((sum, u) => sum + u.level, 0);
-        document.getElementById('stat-achievements-unlocked').innerText = '0';
         document.getElementById('stat-level').innerText = `Lv. ${game.level}` + (game.level >= MAX_LEVEL ? ' (MAX)' : '');
         if (game.level >= MAX_LEVEL) {
             document.getElementById('stat-exp').innerText = 'MAX LEVEL';
@@ -2183,15 +2441,19 @@
         document.getElementById('stat-super-prestige-count').innerText = superPrestigeCount;
         document.getElementById('super-prestige-stat-box').style.display = superPrestigeCount > 0 ? '' : 'none';
 
+        document.getElementById('stat-achievements-unlocked').innerText = `${getTotalAchievementTiersUnlocked()} / ${getTotalAchievementTiersAvailable()}`;
+
         if (forceFullRerender) {
             if (isTabActive('upgrades')) renderUpgrades();
             if (isTabActive('skills')) renderSkills();
             if (isTabActive('prestige')) renderPrestigeUpgrades();
+            if (isTabActive('achievements')) renderAchievements();
             if (isTabActive('businesses')) { renderBusinesses(); updateBusinessesContainerHeight(); }
         } else {
             if (isTabActive('upgrades')) refreshUpgradeAffordability();
             if (isTabActive('skills')) refreshSkillAffordability();
             if (isTabActive('prestige')) refreshPrestigeAffordability();
+            if (isTabActive('achievements')) refreshAchievementsDisplay();
             if (isTabActive('businesses')) refreshBusinessAffordability();
         }
     }
@@ -2288,6 +2550,7 @@
         if (tabName === 'upgrades') renderUpgrades();
         if (tabName === 'skills') renderSkills();
         if (tabName === 'prestige') renderPrestigeUpgrades();
+        if (tabName === 'achievements') renderAchievements();
         if (tabName === 'businesses') {
             renderBusinesses();
             updateBusinessesContainerHeight();
@@ -2434,6 +2697,11 @@
             lifetimeEarnings += incomePerTick;
             game.playTimeSeconds += 1 / tickRate;
             addExp(incomePerTick);
+            highestIncomePerSecond = Math.max(highestIncomePerSecond, incomeRate);
+            highestTotalEarnedInRun = Math.max(highestTotalEarnedInRun, game.totalEarned);
+            highestBusinessesOwnedInRun = Math.max(highestBusinessesOwnedInRun, businesses.filter(b => b.owned).length);
+            highestLevelInRun = Math.max(highestLevelInRun, game.level);
+            highestPrestigeCountReached = Math.max(highestPrestigeCountReached, prestigeCount);
             updateUI(incomeRate);
         }, 1000 / tickRate);
 
