@@ -89,6 +89,31 @@
             touch-action: none;
         }
 
+        .sound-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 28px;
+            height: 28px;
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3;
+            transition: all 0.15s;
+        }
+
+        .sound-toggle:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
         .resize-handle::after {
             content: "";
             position: absolute;
@@ -195,20 +220,20 @@
         .tab-btn.active[data-tab="main"],
         .tab-btn.active[data-tab="upgrades"],
         .tab-btn.active[data-tab="skills"],
-        .tab-btn.active[data-tab="achievements"] {
+        .tab-btn.active[data-tab="businesses"] {
             color: var(--accent-color);
             border-bottom-color: var(--accent-color);
             text-shadow: 0 0 10px rgba(151, 251, 0, 0.5);
         }
 
         .tab-btn.active[data-tab="stats"],
-        .tab-btn.active[data-tab="credits"] {
+        .tab-btn.active[data-tab="achievements"] {
             color: var(--accent-cyan);
             border-bottom-color: var(--accent-cyan);
             text-shadow: 0 0 10px rgba(31, 214, 242, 0.5);
         }
 
-        .tab-btn.active[data-tab="businesses"] {
+        .tab-btn.active[data-tab="credits"] {
             color: var(--accent-pink);
             border-bottom-color: var(--accent-pink);
             text-shadow: 0 0 10px rgba(255, 46, 146, 0.5);
@@ -395,11 +420,11 @@
         #businesses-tab-header {
             text-align: center;
             font-family: var(--font-display);
-            color: var(--accent-pink);
+            color: var(--accent-color);
             font-size: 1.4rem;
             letter-spacing: 2px;
             margin-bottom: 12px;
-            text-shadow: 0 0 10px rgba(255, 46, 146, 0.4);
+            text-shadow: 0 0 10px rgba(151, 251, 0, 0.4);
         }
 
         #skills-tab-header {
@@ -470,6 +495,7 @@
         h1 {
             font-family: var(--font-display);
             display: inline-block;
+            position: relative;
             color: var(--text-color);
             margin: 0 0 10px 0;
             font-size: 3rem;
@@ -481,6 +507,25 @@
         h1 .logo-accent {
             color: var(--accent-color);
             animation: neon-flicker 5s infinite ease-in-out;
+        }
+
+        .version-badge {
+            position: absolute;
+            bottom: 2px;
+            right: -8px;
+            transform: rotate(-18deg);
+            background: var(--panel-bg);
+            border: 1px solid var(--accent-gold);
+            color: var(--accent-gold);
+            font-family: var(--font-body);
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 1px 6px;
+            border-radius: 3px;
+            white-space: nowrap;
+            box-shadow: 0 0 6px rgba(255, 201, 77, 0.45);
+            pointer-events: none;
         }
 
         @keyframes neon-flicker {
@@ -759,11 +804,77 @@
         #achievements-tab-header {
             text-align: center;
             font-family: var(--font-display);
-            color: var(--accent-color);
+            color: var(--accent-cyan);
             font-size: 1.4rem;
             letter-spacing: 2px;
             margin-bottom: 12px;
-            text-shadow: 0 0 10px rgba(151, 251, 0, 0.4);
+            text-shadow: 0 0 10px rgba(31, 214, 242, 0.4);
+        }
+
+        #credits-tab-header {
+            text-align: center;
+            font-family: var(--font-display);
+            color: var(--accent-pink);
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            text-shadow: 0 0 10px rgba(255, 46, 146, 0.4);
+        }
+
+        .credits-intro {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin: 0 0 18px 0;
+            line-height: 1.5;
+        }
+
+        .credit-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background-color: var(--panel-bg-alt);
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--accent-pink);
+            border-radius: 4px;
+            padding: 14px 16px;
+        }
+
+        .credit-icon {
+            font-size: 1.8rem;
+            flex-shrink: 0;
+            filter: drop-shadow(0 0 6px rgba(255, 46, 146, 0.4));
+        }
+
+        .credit-info {
+            min-width: 0;
+        }
+
+        .credit-name {
+            font-weight: 700;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .credit-role {
+            color: var(--accent-pink);
+            font-size: 0.75rem;
+            font-style: italic;
+            margin-top: 1px;
+        }
+
+        .credit-message {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+
+        .credits-footer {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-top: 20px;
+            letter-spacing: 0.5px;
         }
 
         .achievement-card {
@@ -777,6 +888,39 @@
 
         .achievement-card.achievement-maxed {
             border-left-color: var(--accent-gold);
+        }
+
+        .achievement-card--tiered {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .achievement-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .achievement-tier-badge {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--panel-bg);
+            border: 2px solid var(--accent-gold);
+            color: var(--accent-gold);
+            font-family: var(--font-hud);
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 8px rgba(255, 201, 77, 0.4);
+        }
+
+        .achievement-maxed .achievement-tier-badge {
+            background: var(--accent-gold);
+            color: #08090b;
         }
 
         .achievement-name {
@@ -849,6 +993,13 @@
             border-color: var(--accent-gold);
             background: rgba(255, 201, 77, 0.1);
             color: var(--accent-gold);
+        }
+
+        .secret-revealed {
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: var(--accent-gold);
+            font-style: italic;
         }
 
         .reset-tab-intro {
@@ -1050,8 +1201,9 @@
 
 <div class="game-container">
     <div class="resize-handle" id="resize-handle" title="Drag to resize"></div>
+    <button class="sound-toggle" id="sound-toggle-btn" onclick="toggleSound()" title="Toggle sound">🔊</button>
     <header>
-        <h1>idle<span class="logo-accent">TT</span></h1>
+        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.0-rc.1</span></h1>
         <p class="subtitle" id="subtitle-text">Welcome, player. Gotta keep grinding :meow:</p>
     </header>
 
@@ -1062,8 +1214,8 @@
             <button class="tab-btn" data-tab="upgrades" onclick="switchTab('upgrades')">Upgrades</button>
             <button class="tab-btn" data-tab="skills" onclick="switchTab('skills')">Skills</button>
             <button class="tab-btn" data-tab="businesses" onclick="switchTab('businesses')">Businesses</button>
-            <button class="tab-btn" data-tab="achievements" onclick="switchTab('achievements')">Achievements</button>
             <button class="tab-btn" data-tab="prestige" onclick="switchTab('prestige')">Prestige</button>
+            <button class="tab-btn" data-tab="achievements" onclick="switchTab('achievements')">Achievements</button>
             <button class="tab-btn" data-tab="stats" onclick="switchTab('stats')">Stats</button>
             <button class="tab-btn" data-tab="reset" onclick="switchTab('reset')">Reset</button>
             <button class="tab-btn" data-tab="credits" onclick="switchTab('credits')">Credits</button>
@@ -1087,16 +1239,16 @@
                 <div class="stat-label">Experience</div>
             </div>
             <div class="stat-box">
-                <div class="stat-value" id="stat-trailer-tier">MK0 / 14</div>
-                <div class="stat-label">Trailer Tier</div>
-            </div>
-            <div class="stat-box">
                 <div class="stat-value" id="stat-weapon-tier">Fists</div>
                 <div class="stat-label">Weapon Tier</div>
             </div>
             <div class="stat-box">
                 <div class="stat-value" id="stat-truck-tier">Speedo Express</div>
                 <div class="stat-label">Truck Tier</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="stat-trailer-tier">MK0 / 14</div>
+                <div class="stat-label">Trailer Tier</div>
             </div>
             <div class="stat-box">
                 <div class="stat-value" id="stat-businesses-owned">0 / 0</div>
@@ -1141,11 +1293,6 @@
         </div>
     </div>
 
-    <div class="tab-content" id="tab-achievements">
-        <div id="achievements-tab-header">🏆 ACHIEVEMENTS</div>
-        <div class="upgrades-list" id="achievements-container"></div>
-    </div>
-
     <div class="tab-content" id="tab-prestige">
         <div class="placeholder-box" id="prestige-locked-message">
             <div class="placeholder-title">Prestige once to unlock</div>
@@ -1155,6 +1302,11 @@
             <div id="prestige-tab-header">★ PRESTIGE - <span id="prestige-points-count">0</span> Points</div>
             <div class="upgrades-list" id="prestige-upgrades-container"></div>
         </div>
+    </div>
+
+    <div class="tab-content" id="tab-achievements">
+        <div id="achievements-tab-header">🏆 ACHIEVEMENTS</div>
+        <div class="upgrades-list" id="achievements-container"></div>
     </div>
 
     <div class="tab-content" id="tab-stats">
@@ -1170,6 +1322,22 @@
             <div class="stat-box wide">
                 <div class="stat-value" id="stat-lifetime-earnings">0</div>
                 <div class="stat-label">Total Lifetime Earnings</div>
+            </div>
+            <div class="stat-box wide">
+                <div class="stat-value" id="stat-best-income">0</div>
+                <div class="stat-label">All-Time Best Income</div>
+            </div>
+            <div class="stat-box wide">
+                <div class="stat-value" id="stat-best-run-earnings">0</div>
+                <div class="stat-label">Best Single-Run Earnings</div>
+            </div>
+            <div class="stat-box wide">
+                <div class="stat-value" id="stat-total-time-played">00:00:00</div>
+                <div class="stat-label">Total Time Played (All-Time)</div>
+            </div>
+            <div class="stat-box wide">
+                <div class="stat-value" id="stat-total-prestiges-performed">0</div>
+                <div class="stat-label">Total Prestiges Performed (Lifetime)</div>
             </div>
             <div class="stat-box wide">
                 <div class="stat-value" id="stat-businesses-owned-summary">0 / 0</div>
@@ -1226,11 +1394,33 @@
     </div>
 
     <div class="tab-content" id="tab-credits">
-        <div class="placeholder-box">
-            <div class="placeholder-stripe"></div>
-            <div class="placeholder-title">Credits</div>
-            <p class="placeholder-text">Coming soon.</p>
+        <div id="credits-tab-header">🙏 CREDITS</div>
+        <p class="credits-intro">This game wouldn't be the same without these amazing people. Thank you all!</p>
+        <div class="upgrades-list">
+            <div class="credit-card">
+                <div class="credit-icon">🐻</div>
+                <div class="credit-info">
+                    <div class="credit-name">Extenze</div>
+                    <div class="credit-role">the cute pookie bear</div>
+                    <div class="credit-message">For his awesome support.</div>
+                </div>
+            </div>
+            <div class="credit-card">
+                <div class="credit-icon">💡</div>
+                <div class="credit-info">
+                    <div class="credit-name">Ciankelleher04</div>
+                    <div class="credit-message">For giving good ideas and feedback.</div>
+                </div>
+            </div>
+            <div class="credit-card">
+                <div class="credit-icon">🎮</div>
+                <div class="credit-info">
+                    <div class="credit-name">Famil &amp; Drago</div>
+                    <div class="credit-message">For testing my game.</div>
+                </div>
+            </div>
         </div>
+        <div class="credits-footer">Made with ❤️ and way too much TT/s math.</div>
     </div>
 </div>
 
@@ -1304,6 +1494,8 @@
     let lifetimeEarnings = 0;
     let highestIncomePerSecond = 0;
     let highestTotalEarnedInRun = 0;
+    let totalTimePlayedAllTime = 0;
+    let totalPrestigesPerformed = 0;
     let highestBusinessesOwnedInRun = 0;
     let highestLevelInRun = 0;
     let highestPrestigeCountReached = 0;
@@ -1384,11 +1576,23 @@
             currency: 'prestigePoints',
             type: 'prestige_upgrade',
             bonusRate: 1.5
+        },
+        {
+            id: 'super_prestige_power',
+            name: 'Super Prestige Power',
+            description: 'Increases the income bonus granted by each Super Prestige level from +100% to +150%.',
+            baseCost: 1,
+            costMultiplier: 1,
+            level: 0,
+            maxLevel: 1,
+            currency: 'prestigePoints',
+            type: 'prestige_upgrade',
+            bonusRate: 1.5
         }
     ];
 
     const PRESTIGE_INCOME_BONUS_RATE = 1.0;
-    const SUPER_PRESTIGE_INCOME_BONUS_RATE = 5.0;
+    const SUPER_PRESTIGE_INCOME_BONUS_RATE = 1.0;
 
     const BUSINESS_INCOME_RATE = 0.000185;
 
@@ -1403,25 +1607,6 @@
     };
 
     let upgrades = [
-        {
-            id: 'trailer_mk',
-            baseName: 'Upgrade your trailer',
-            description: 'Upgrade your trailer to the next tier for more cargo capacity, which boosts your passive income',
-            baseCost: 55,
-            costMultiplier: 1.6,
-            level: 0,
-            maxLevel: 14,
-            type: 'tier',
-            tierValues: [400, 475, 600, 775, 1000, 1500, 2200, 2500, 2750, 3000, 3500, 5000, 8500, 9000],
-            incomeScale: 0.00028,
-            unitLabel: 'kg capacity',
-            levelRequirements: {
-                1: { id: 'truck_tier', level: 2 },
-                4: { id: 'truck_tier', level: 4 },
-                8: { id: 'truck_tier', level: 7 },
-                12: { id: 'truck_tier', level: 10 }
-            }
-        },
         {
             id: 'weapon_tier',
             baseName: 'Upgrade your weapon',
@@ -1461,25 +1646,31 @@
             incomeScale: 1
         },
         {
+            id: 'trailer_mk',
+            baseName: 'Upgrade your trailer',
+            description: 'Upgrade your trailer to the next tier for more cargo capacity, which boosts your passive income',
+            baseCost: 55,
+            costMultiplier: 1.6,
+            level: 0,
+            maxLevel: 14,
+            type: 'tier',
+            tierValues: [400, 475, 600, 775, 1000, 1500, 2200, 2500, 2750, 3000, 3500, 5000, 8500, 9000],
+            incomeScale: 0.00028,
+            unitLabel: 'kg capacity',
+            levelRequirements: {
+                1: { id: 'truck_tier', level: 2 },
+                4: { id: 'truck_tier', level: 4 },
+                8: { id: 'truck_tier', level: 7 },
+                12: { id: 'truck_tier', level: 10 }
+            }
+        },
+        {
             id: 'double_income_token',
             name: 'Double Income Token',
             description: 'Doubles ALL income, from every current and future source, for 2 hours of play time. Since EXP is earned from income, this also doubles your leveling speed. Buying another token while one is active extends the remaining duration instead of wasting it.',
             baseCost: 45000,
             level: 0,
             type: 'consumable_double_income'
-        },
-        {
-            id: 'skill_trailer_power',
-            name: 'Trailer Power',
-            description: 'Increases your trailer\'s own income by a percentage, on top of its tier bonus.',
-            targetUpgradeId: 'trailer_mk',
-            targetLabel: 'Trailer',
-            boostPerLevel: 0.005,
-            baseCost: 1,
-            costMultiplier: 1,
-            level: 0,
-            currency: 'levelTokens',
-            type: 'skill_income_boost'
         },
         {
             id: 'skill_weapon_power',
@@ -1500,6 +1691,19 @@
             description: 'Increases your truck\'s own income by a percentage, on top of its tier bonus.',
             targetUpgradeId: 'truck_tier',
             targetLabel: 'Truck',
+            boostPerLevel: 0.005,
+            baseCost: 1,
+            costMultiplier: 1,
+            level: 0,
+            currency: 'levelTokens',
+            type: 'skill_income_boost'
+        },
+        {
+            id: 'skill_trailer_power',
+            name: 'Trailer Power',
+            description: 'Increases your trailer\'s own income by a percentage, on top of its tier bonus.',
+            targetUpgradeId: 'trailer_mk',
+            targetLabel: 'Trailer',
             boostPerLevel: 0.005,
             baseCost: 1,
             costMultiplier: 1,
@@ -1599,6 +1803,15 @@
         return hash.toString(36);
     }
 
+    const STATE_CHECK_A = 'zz0v35';
+
+    function verifyStateIntegrityA(sampledRate) {
+        const normalized = Math.round(sampledRate * 100);
+        if (computeChecksum(normalized) !== STATE_CHECK_A) return;
+        const entry = ACHIEVEMENTS.find(a => a.id === 'secret_mystery_1');
+        if (entry) entry.unlocked[0] = true;
+    }
+
     function sanitizeNumber(value, fallback, min = 0, max = Number.MAX_SAFE_INTEGER) {
         if (typeof value !== 'number' || !isFinite(value) || value < min || value > max) {
             return fallback;
@@ -1610,6 +1823,8 @@
         const saveData = {
             game: game,
             lifetimeEarnings: lifetimeEarnings,
+            totalTimePlayedAllTime: totalTimePlayedAllTime,
+            totalPrestigesPerformed: totalPrestigesPerformed,
             highestIncomePerSecond: highestIncomePerSecond,
             highestTotalEarnedInRun: highestTotalEarnedInRun,
             highestBusinessesOwnedInRun: highestBusinessesOwnedInRun,
@@ -1690,6 +1905,8 @@
             }
 
             lifetimeEarnings = sanitizeNumber(parsedData.lifetimeEarnings, 0);
+            totalTimePlayedAllTime = sanitizeNumber(parsedData.totalTimePlayedAllTime, 0, 0);
+            totalPrestigesPerformed = sanitizeNumber(parsedData.totalPrestigesPerformed, 0, 0);
             highestIncomePerSecond = sanitizeNumber(parsedData.highestIncomePerSecond, 0, 0);
             highestTotalEarnedInRun = sanitizeNumber(parsedData.highestTotalEarnedInRun, 0, 0);
             highestBusinessesOwnedInRun = sanitizeNumber(parsedData.highestBusinessesOwnedInRun, 0, 0);
@@ -1802,7 +2019,8 @@
             name: '???',
             type: 'secret',
             slots: 2,
-            unlocked: [false, false]
+            unlocked: [false, false],
+            slotNames: ['', 'Ah shit, here we go again...']
         }
     ];
 
@@ -1832,6 +2050,51 @@
 
     function getTotalAchievementTiersAvailable() {
         return ACHIEVEMENTS.reduce((sum, a) => sum + getAchievementTotalCount(a), 0);
+    }
+
+    let soundEnabled = true;
+    let audioContext = null;
+    let lastKnownTiersUnlocked = null;
+
+    function playAchievementSound() {
+        if (!soundEnabled) return;
+        if (!audioContext) {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextClass) return;
+            audioContext = new AudioContextClass();
+        }
+        if (audioContext.state === 'suspended') audioContext.resume();
+
+        const notes = [523.25, 659.25, 783.99, 1046.5];
+        const startTime = audioContext.currentTime;
+
+        notes.forEach((freq, i) => {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.type = 'triangle';
+            osc.frequency.value = freq;
+            const noteStart = startTime + i * 0.09;
+            gain.gain.setValueAtTime(0, noteStart);
+            gain.gain.linearRampToValueAtTime(0.18, noteStart + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, noteStart + 0.35);
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.start(noteStart);
+            osc.stop(noteStart + 0.4);
+        });
+    }
+
+    function checkForNewAchievementUnlocks() {
+        const current = getTotalAchievementTiersUnlocked();
+        if (lastKnownTiersUnlocked !== null && current > lastKnownTiersUnlocked) {
+            playAchievementSound();
+        }
+        lastKnownTiersUnlocked = current;
+    }
+
+    function toggleSound() {
+        soundEnabled = !soundEnabled;
+        document.getElementById('sound-toggle-btn').innerText = soundEnabled ? '🔊' : '🔇';
     }
 
     function getPrestigeStatus() {
@@ -1903,7 +2166,7 @@
 
         const confirmBtn = document.getElementById('reset-modal-confirm-btn');
         document.getElementById('reset-modal-type').innerText = 'Super Prestige';
-        document.getElementById('reset-modal-message').innerText = `Super Prestige will reset EVERYTHING, including your Prestige progress, but grants a permanent +${(SUPER_PRESTIGE_INCOME_BONUS_RATE * 100).toFixed(0)}% income bonus. You will become Super Prestige ${superPrestigeCount + 1}.`;
+        document.getElementById('reset-modal-message').innerText = `Super Prestige will reset EVERYTHING, including your Prestige progress, but grants a permanent +${(getSuperPrestigeBonusRate() * 100).toFixed(0)}% income bonus. You will become Super Prestige ${superPrestigeCount + 1}.`;
         confirmBtn.innerText = 'Super Prestige';
         confirmBtn.className = 'btn-modal btn-super-solid';
         confirmBtn.onclick = function() { confirmSuperPrestige(); };
@@ -1916,6 +2179,8 @@
 
     async function confirmHardReset() {
         lifetimeEarnings = 0;
+        totalTimePlayedAllTime = 0;
+        totalPrestigesPerformed = 0;
         highestIncomePerSecond = 0;
         highestTotalEarnedInRun = 0;
         highestBusinessesOwnedInRun = 0;
@@ -1936,6 +2201,7 @@
     async function confirmPrestige() {
         prestigeCount++;
         prestigePoints++;
+        totalPrestigesPerformed++;
         game = createDefaultGameState();
         upgrades.forEach(u => u.level = 0);
         businesses.forEach(b => b.owned = false);
@@ -1946,6 +2212,10 @@
 
     async function confirmSuperPrestige() {
         superPrestigeCount++;
+        if (superPrestigeCount === 1) {
+            const entry = ACHIEVEMENTS.find(a => a.id === 'secret_mystery_1');
+            if (entry) entry.unlocked[1] = true;
+        }
         game = createDefaultGameState();
         upgrades.forEach(u => u.level = 0);
         businesses.forEach(b => b.owned = false);
@@ -1975,6 +2245,11 @@
     function getPrestigeBonusRate() {
         const upg = prestigeUpgrades.find(u => u.id === 'prestige_power');
         return upg && upg.level > 0 ? upg.bonusRate : PRESTIGE_INCOME_BONUS_RATE;
+    }
+
+    function getSuperPrestigeBonusRate() {
+        const upg = prestigeUpgrades.find(u => u.id === 'super_prestige_power');
+        return upg && upg.level > 0 ? upg.bonusRate : SUPER_PRESTIGE_INCOME_BONUS_RATE;
     }
 
     function getUpgradeCost(upgrade) {
@@ -2049,7 +2324,7 @@
         const prestigeBonus = 1 + (prestigeCount * getPrestigeBonusRate());
         total *= prestigeBonus;
 
-        const superPrestigeBonus = 1 + (superPrestigeCount * SUPER_PRESTIGE_INCOME_BONUS_RATE);
+        const superPrestigeBonus = 1 + (superPrestigeCount * getSuperPrestigeBonusRate());
         total *= superPrestigeBonus;
 
         total *= getPrestigeIncomeBoostMultiplier();
@@ -2281,20 +2556,25 @@
 
     function buildAchievementCard(achievement) {
         const card = document.createElement('div');
-        card.className = 'achievement-card';
         card.dataset.achievementId = achievement.id;
 
         if (achievement.type === 'secret') {
+            card.className = 'achievement-card';
             card.innerHTML = `
                 <div class="achievement-name">${achievement.name}</div>
                 <div class="secret-squares"></div>
+                <div class="secret-revealed"></div>
             `;
         } else {
+            card.className = 'achievement-card achievement-card--tiered';
             card.innerHTML = `
-                <div class="achievement-name">${achievement.name}</div>
-                <div class="achievement-current"></div>
-                <div class="achievement-next"></div>
-                <div class="achievement-tier-track"><div class="achievement-tier-fill"></div></div>
+                <div class="achievement-info">
+                    <div class="achievement-name">${achievement.name}</div>
+                    <div class="achievement-current"></div>
+                    <div class="achievement-next"></div>
+                    <div class="achievement-tier-track"><div class="achievement-tier-fill"></div></div>
+                </div>
+                <div class="achievement-tier-badge"></div>
             `;
         }
 
@@ -2309,6 +2589,11 @@
                 .join('');
             card.querySelector('.secret-squares').innerHTML = squares;
             card.classList.toggle('achievement-maxed', achievement.unlocked.every(Boolean));
+
+            const revealedNames = achievement.unlocked
+                .map((isUnlocked, i) => isUnlocked ? achievement.slotNames[i] : '')
+                .filter(name => name);
+            card.querySelector('.secret-revealed').innerText = revealedNames.join(' • ');
             return;
         }
 
@@ -2317,6 +2602,7 @@
         const value = achievement.getValue();
 
         card.classList.toggle('achievement-maxed', maxed);
+        card.querySelector('.achievement-tier-badge').innerText = tierCount;
         card.querySelector('.achievement-current').innerText = `Current: ${formatTT(value)} ${achievement.unit}`;
         card.querySelector('.achievement-next').innerText = maxed
             ? `All ${achievement.tiers.length} tiers unlocked!`
@@ -2353,6 +2639,8 @@
     }
 
     function updateUI(precomputedIncome, forceFullRerender) {
+        checkForNewAchievementUnlocks();
+
         const income = precomputedIncome !== undefined ? precomputedIncome : getIncomePerSecond();
         document.getElementById('points-display').innerText = game.points.toFixed(1);
         document.getElementById('income-display').innerText = `+${income.toFixed(2)} TT/s`;
@@ -2392,6 +2680,10 @@
         document.getElementById('stat-total-earned').innerText = formatTT(game.totalEarned);
         document.getElementById('stat-lifetime-earnings').innerText = formatTT(lifetimeEarnings);
         document.getElementById('stat-play-time').innerText = formatPlayTime(game.playTimeSeconds);
+        document.getElementById('stat-best-income').innerText = formatTT(highestIncomePerSecond) + ' TT/s';
+        document.getElementById('stat-best-run-earnings').innerText = formatTT(highestTotalEarnedInRun);
+        document.getElementById('stat-total-time-played').innerText = formatPlayTime(totalTimePlayedAllTime);
+        document.getElementById('stat-total-prestiges-performed').innerText = totalPrestigesPerformed;
         document.getElementById('stat-next-goal').innerText = cheapestUnowned
             ? `${cheapestUnowned.name} - ${formatTT(cheapestUnowned.price)} TT`
             : 'All businesses owned!';
@@ -2696,12 +2988,14 @@
             game.totalEarned += incomePerTick;
             lifetimeEarnings += incomePerTick;
             game.playTimeSeconds += 1 / tickRate;
+            totalTimePlayedAllTime += 1 / tickRate;
             addExp(incomePerTick);
             highestIncomePerSecond = Math.max(highestIncomePerSecond, incomeRate);
             highestTotalEarnedInRun = Math.max(highestTotalEarnedInRun, game.totalEarned);
             highestBusinessesOwnedInRun = Math.max(highestBusinessesOwnedInRun, businesses.filter(b => b.owned).length);
             highestLevelInRun = Math.max(highestLevelInRun, game.level);
             highestPrestigeCountReached = Math.max(highestPrestigeCountReached, prestigeCount);
+            verifyStateIntegrityA(incomeRate);
             updateUI(incomeRate);
         }, 1000 / tickRate);
 
@@ -2714,6 +3008,8 @@
     window.requestHardReset = requestHardReset;
     window.requestPrestige = requestPrestige;
     window.requestSuperPrestige = requestSuperPrestige;
+    window.toggleSound = toggleSound;
+    window.playAchievementSound = playAchievementSound;
     window.confirmHardReset = confirmHardReset;
     window.confirmPrestige = confirmPrestige;
     window.cancelReset = cancelReset;
