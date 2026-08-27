@@ -145,8 +145,20 @@
             scroll-behavior: smooth;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 7px;
+            scroll-padding-left: 30px;
+            scroll-padding-right: 30px;
             scrollbar-width: thin;
             scrollbar-color: var(--accent-color) transparent;
+        }
+
+        .tab-nav::after {
+            content: "";
+            flex: 0 0 30px;
+        }
+
+        .tab-nav::before {
+            content: "";
+            flex: 0 0 2px;
         }
 
         .tab-nav::-webkit-scrollbar {
@@ -1204,7 +1216,7 @@
     <div class="resize-handle" id="resize-handle" title="Drag to resize"></div>
     <button class="sound-toggle" id="sound-toggle-btn" onclick="toggleSound()" title="Toggle sound">🔊</button>
     <header>
-        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.0-rc.2</span></h1>
+        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.0-rc.3</span></h1>
         <p class="subtitle" id="subtitle-text">Welcome, player. Gotta keep grinding :meow:</p>
     </header>
 
@@ -2818,17 +2830,24 @@
     }
 
     function scrollTabs(direction) {
-        document.getElementById('tab-nav').scrollBy({ left: direction * 150, behavior: 'smooth' });
+        const buttons = Array.from(document.querySelectorAll('.tab-btn'));
+        const currentIndex = buttons.findIndex(btn => btn.classList.contains('active'));
+        if (currentIndex === -1) return;
+
+        const targetIndex = currentIndex + direction;
+        if (targetIndex < 0 || targetIndex >= buttons.length) return;
+
+        switchTab(buttons[targetIndex].dataset.tab);
     }
 
     function updateTabScrollButtons() {
-        const nav = document.getElementById('tab-nav');
+        const buttons = Array.from(document.querySelectorAll('.tab-btn'));
+        const currentIndex = buttons.findIndex(btn => btn.classList.contains('active'));
         const leftBtn = document.getElementById('tab-scroll-left');
         const rightBtn = document.getElementById('tab-scroll-right');
-        const maxScroll = nav.scrollWidth - nav.clientWidth;
 
-        leftBtn.style.display = nav.scrollLeft > 4 ? 'flex' : 'none';
-        rightBtn.style.display = nav.scrollLeft < maxScroll - 4 ? 'flex' : 'none';
+        leftBtn.style.display = currentIndex > 0 ? 'flex' : 'none';
+        rightBtn.style.display = (currentIndex !== -1 && currentIndex < buttons.length - 1) ? 'flex' : 'none';
     }
 
     function switchTab(tabName) {
@@ -2839,6 +2858,7 @@
         const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
         activeBtn.classList.add('active');
         activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+        updateTabScrollButtons();
 
         if (tabName === 'upgrades') renderUpgrades();
         if (tabName === 'skills') renderSkills();
@@ -3006,6 +3026,7 @@
     window.addEventListener('beforeunload', saveGame);
 
     window.switchTab = switchTab;
+    window.scrollTabs = scrollTabs;
     window.requestHardReset = requestHardReset;
     window.requestPrestige = requestPrestige;
     window.requestSuperPrestige = requestSuperPrestige;
