@@ -57,16 +57,44 @@
             width: 100%;
             max-width: 420px;
             box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
             background-color: var(--panel-bg);
-            background-image:
-                repeating-linear-gradient(135deg, rgba(151, 251, 0, 0.02) 0px, rgba(151, 251, 0, 0.02) 1px, transparent 1px, transparent 26px),
-                repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.015) 0px, rgba(255, 255, 255, 0.015) 1px, transparent 1px, transparent 26px);
             border: 1px solid var(--border-color);
             border-top: 3px solid var(--accent-color);
             border-radius: 4px;
-            padding: 25px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+
+        .game-scroll-area {
+            box-sizing: border-box;
+            flex: 1;
+            min-height: 0;
+            padding: 25px;
             overflow-y: auto;
+            background-image:
+                repeating-linear-gradient(135deg, rgba(151, 251, 0, 0.02) 0px, rgba(151, 251, 0, 0.02) 1px, transparent 1px, transparent 26px),
+                repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.015) 0px, rgba(255, 255, 255, 0.015) 1px, transparent 1px, transparent 26px);
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-color) transparent;
+        }
+
+        .game-scroll-area::-webkit-scrollbar {
+            width: 7px;
+        }
+
+        .game-scroll-area::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .game-scroll-area::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 3px;
+            box-shadow: 0 0 4px rgba(151, 251, 0, 0.5);
+        }
+
+        .game-scroll-area::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-color-dark);
         }
 
         .game-container header {
@@ -81,7 +109,7 @@
 
         .resize-handle {
             position: absolute;
-            right: -1px;
+            right: 6px;
             bottom: -1px;
             width: 20px;
             height: 20px;
@@ -233,7 +261,8 @@
         .tab-btn.active[data-tab="main"],
         .tab-btn.active[data-tab="upgrades"],
         .tab-btn.active[data-tab="skills"],
-        .tab-btn.active[data-tab="businesses"] {
+        .tab-btn.active[data-tab="businesses"],
+        .tab-btn.active[data-tab="collections"] {
             color: var(--accent-color);
             border-bottom-color: var(--accent-color);
             text-shadow: 0 0 10px rgba(151, 251, 0, 0.5);
@@ -426,6 +455,16 @@
             text-shadow: 0 0 10px rgba(151, 251, 0, 0.4);
         }
 
+        #collections-tab-header {
+            text-align: center;
+            font-family: var(--font-display);
+            color: var(--accent-color);
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            text-shadow: 0 0 10px rgba(151, 251, 0, 0.4);
+        }
+
         #skills-tab-header {
             text-align: center;
             font-family: var(--font-display);
@@ -451,6 +490,21 @@
         }
 
         #businesses-container::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        #collections-container {
+            max-height: 420px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        #collections-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #collections-container::-webkit-scrollbar-thumb {
             background: var(--border-color);
             border-radius: 3px;
         }
@@ -828,6 +882,14 @@
             line-height: 1.5;
         }
 
+        .collections-intro {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin: 0 0 18px 0;
+            line-height: 1.5;
+        }
+
         .credit-card {
             display: flex;
             align-items: center;
@@ -920,6 +982,81 @@
         .achievement-maxed .achievement-tier-badge {
             background: var(--accent-gold);
             color: #08090b;
+        }
+
+        .collection-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background-color: var(--panel-bg-alt);
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--accent-color);
+            border-radius: 4px;
+            padding: 14px 16px;
+        }
+
+        .collection-card.collection-complete {
+            border-left-color: var(--accent-gold);
+        }
+
+        .collection-icon {
+            font-size: 1.6rem;
+            flex-shrink: 0;
+            filter: drop-shadow(0 0 6px rgba(151, 251, 0, 0.4));
+        }
+
+        .collection-complete .collection-icon {
+            filter: drop-shadow(0 0 6px rgba(255, 201, 77, 0.5));
+        }
+
+        .collection-info {
+            min-width: 0;
+        }
+
+        .collection-name {
+            font-weight: 700;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .collection-count {
+            font-family: var(--font-hud);
+            color: var(--accent-color);
+            font-size: 0.85rem;
+            margin-top: 2px;
+        }
+
+        .collection-complete .collection-count {
+            color: var(--accent-gold);
+        }
+
+        .collection-circles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .collection-circle {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            cursor: help;
+        }
+
+        .collection-circle-lit {
+            background: var(--accent-gold);
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 6px rgba(255, 201, 77, 0.7);
+        }
+
+        .collection-bonus-active {
+            margin-top: 6px;
+            font-size: 0.75rem;
+            color: var(--accent-gold);
+            font-weight: 700;
         }
 
         .achievement-name {
@@ -1201,8 +1338,9 @@
 <div class="game-container">
     <div class="resize-handle" id="resize-handle" title="Drag to resize"></div>
     <button class="sound-toggle" id="sound-toggle-btn" onclick="toggleSound()" title="Toggle sound">🔊</button>
+    <div class="game-scroll-area">
     <header>
-        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.0-rc.4</span></h1>
+        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.1-rc.1</span></h1>
         <p class="subtitle" id="subtitle-text">Welcome, player. Gotta keep grinding :meow:</p>
     </header>
 
@@ -1213,6 +1351,7 @@
             <button class="tab-btn" data-tab="upgrades" onclick="switchTab('upgrades')">Upgrades</button>
             <button class="tab-btn" data-tab="skills" onclick="switchTab('skills')">Skills</button>
             <button class="tab-btn" data-tab="businesses" onclick="switchTab('businesses')">Businesses</button>
+            <button class="tab-btn" data-tab="collections" onclick="switchTab('collections')">Collections</button>
             <button class="tab-btn" data-tab="prestige" onclick="switchTab('prestige')">Prestige</button>
             <button class="tab-btn" data-tab="achievements" onclick="switchTab('achievements')">Achievements</button>
             <button class="tab-btn" data-tab="stats" onclick="switchTab('stats')">Stats</button>
@@ -1292,6 +1431,12 @@
         </div>
     </div>
 
+    <div class="tab-content" id="tab-collections">
+        <div id="collections-tab-header">📦 COLLECTIONS</div>
+        <p class="collections-intro">Collect all Businesses from a Collection to earn 10% more income from them.</p>
+        <div class="upgrades-list" id="collections-container"></div>
+    </div>
+
     <div class="tab-content" id="tab-prestige">
         <div class="reset-panel reset-panel--super" id="super-prestige-panel" style="display:none;">
             <div class="reset-panel-title">Super Prestige</div>
@@ -1338,12 +1483,32 @@
                 <div class="stat-label">Earned (Since Reset)</div>
             </div>
             <div class="stat-box wide">
+                <div class="stat-value" id="stat-businesses-owned-summary">0 / 0</div>
+                <div class="stat-label">Businesses Owned</div>
+            </div>
+            <div class="stat-box wide">
+                <div class="stat-value" id="stat-upgrades-bought">0</div>
+                <div class="stat-label">Upgrades Bought</div>
+            </div>
+            <div class="stat-box wide">
                 <div class="stat-value" id="stat-play-time">00:00:00</div>
                 <div class="stat-label">Play Time</div>
             </div>
             <div class="stat-box wide">
+                <div class="stat-value" id="stat-collections-completed">0 / 18</div>
+                <div class="stat-label">Collections Completed (Current Run)</div>
+            </div>
+            <div class="stat-box wide">
+                <div class="stat-value" id="stat-achievements-unlocked">0</div>
+                <div class="stat-label">Achievements Unlocked</div>
+            </div>
+            <div class="stat-box wide">
                 <div class="stat-value" id="stat-lifetime-earnings">0</div>
                 <div class="stat-label">Total Lifetime Earnings</div>
+            </div>
+            <div class="stat-box wide">
+                <div class="stat-value" id="stat-total-time-played">00:00:00</div>
+                <div class="stat-label">Total Time Played (All-Time)</div>
             </div>
             <div class="stat-box wide">
                 <div class="stat-value" id="stat-best-income">0</div>
@@ -1354,24 +1519,12 @@
                 <div class="stat-label">Best Single-Run Earnings</div>
             </div>
             <div class="stat-box wide">
-                <div class="stat-value" id="stat-total-time-played">00:00:00</div>
-                <div class="stat-label">Total Time Played (All-Time)</div>
-            </div>
-            <div class="stat-box wide">
                 <div class="stat-value" id="stat-total-prestiges-performed">0</div>
                 <div class="stat-label">Total Prestiges Performed (Lifetime)</div>
             </div>
             <div class="stat-box wide">
-                <div class="stat-value" id="stat-businesses-owned-summary">0 / 0</div>
-                <div class="stat-label">Businesses Owned</div>
-            </div>
-            <div class="stat-box wide">
-                <div class="stat-value" id="stat-upgrades-bought">0</div>
-                <div class="stat-label">Upgrades Bought</div>
-            </div>
-            <div class="stat-box wide">
-                <div class="stat-value" id="stat-achievements-unlocked">0</div>
-                <div class="stat-label">Achievements Unlocked</div>
+                <div class="stat-value" id="stat-collections-completed-best">0</div>
+                <div class="stat-label">Collections Completed (All-Time)</div>
             </div>
             <div class="stat-box wide" id="super-prestige-stat-box" style="display:none;">
                 <div class="stat-value" id="stat-super-prestige-count">0</div>
@@ -1421,6 +1574,7 @@
             </div>
         </div>
         <div class="credits-footer">Made with ❤️ and way too much TT/s math.</div>
+    </div>
     </div>
 </div>
 
@@ -1497,6 +1651,7 @@
     let totalTimePlayedAllTime = 0;
     let totalPrestigesPerformed = 0;
     let highestBusinessesOwnedInRun = 0;
+    let highestCollectionsCompletedInRun = 0;
     let highestLevelInRun = 0;
     let highestPrestigeCountReached = 0;
 
@@ -1595,6 +1750,7 @@
     const SUPER_PRESTIGE_INCOME_BONUS_RATE = 1.0;
 
     const BUSINESS_INCOME_RATE = 0.000185;
+    const COLLECTION_COMPLETION_BOOST_RATE = 0.10;
 
     const LEVEL_INCOME_BONUS_RATE = 0.008;
 
@@ -1604,6 +1760,11 @@
 
     const LEGACY_UPGRADE_ID_ALIASES = {
         'double_xp_token': 'double_income_token'
+    };
+
+    const LEGACY_BUSINESS_ID_ALIASES = {
+        'biz_la_vaca_loco': 'biz_la_vaca_loca',
+        'biz_larss_elboo': 'biz_larss_elbo'
     };
 
     let upgrades = [
@@ -1715,8 +1876,9 @@
 
     let businesses = [
         { id: 'biz_wenger_institute', name: 'Wenger Institute', price: 15000, owned: false },
-        { id: 'biz_la_vaca_loco', name: 'La Vaca Loco', price: 150000, owned: false },
+        { id: 'biz_la_vaca_loca', name: 'La Vaca Loca', price: 150000, owned: false },
         { id: 'biz_vespucci_movie_masks', name: 'Vespucci Movie Masks', price: 150000, owned: false },
+        { id: 'biz_collinsco_cabbies', name: 'CollinsCo Cabbies', price: 200000, owned: false },
         { id: 'biz_sandy_shores_liquor', name: 'Sandy Shores Liquor', price: 250000, owned: false },
         { id: 'biz_pala_springs_tramway', name: 'Pala Springs Aerial Tramway', price: 250000, owned: false },
         { id: 'biz_spokes_bike_rental', name: "Mr. Spoke's Bike Rental", price: 250000, owned: false },
@@ -1726,10 +1888,12 @@
         { id: 'biz_caseys_diner', name: "Casey's Diner", price: 350000, owned: false },
         { id: 'biz_you_tool_sandy_shores', name: 'You Tool Sandy Shores', price: 500000, owned: false },
         { id: 'biz_grandmas_house', name: "Grandma's House", price: 500000, owned: false },
+        { id: 'biz_first_responders_llc', name: 'First Responders LLC', price: 625000, owned: false },
         { id: 'biz_korean_plaza', name: 'Korean Plaza', price: 750000, owned: false },
         { id: 'biz_barracuda_cafe', name: 'Barracuda Cafe', price: 750000, owned: false },
         { id: 'biz_yellowjack', name: 'Yellowjack', price: 950000, owned: false },
-        { id: 'biz_larss_elboo', name: 'Larss & Elboö', price: 1500000, owned: false },
+        { id: 'biz_pandas_illicit_gains', name: "Panda's Illicit Gains Syndicate", price: 1000000, owned: false },
+        { id: 'biz_larss_elbo', name: 'Lârss & Elbö', price: 1500000, owned: false },
         { id: 'biz_los_santos_docks', name: 'Los Santos Docks', price: 1500000, owned: false },
         { id: 'biz_bishops_chicken', name: 'Bishops Chicken', price: 1500000, owned: false },
         { id: 'biz_harmony_gas_station', name: 'Harmony Gas Station', price: 2500000, owned: false },
@@ -1748,11 +1912,13 @@
         { id: 'biz_rebel_radio', name: 'Rebel Radio', price: 9000000, owned: false },
         { id: 'biz_clucking_bell_co', name: 'Clucking Bell Co.', price: 11000000, owned: false },
         { id: 'biz_millars_boat_shop', name: 'Millars Boat Shop', price: 12500000, owned: false },
+        { id: 'biz_rockwell_transport_solutions', name: 'Rockwell Transport Solutions', price: 15000000, owned: false },
         { id: 'biz_opium_nights_hotel', name: 'Opium Nights Hotel', price: 17000000, owned: false },
         { id: 'biz_bristols_storage', name: 'Bristols Storage', price: 17500000, owned: false },
         { id: 'biz_davis_quartz_quarry', name: 'Davis Quartz Quarry', price: 18000000, owned: false },
         { id: 'biz_pacific_bluffs_country_club', name: 'Pacific Bluffs Country Club', price: 18000000, owned: false },
         { id: 'biz_marina_beach_mansion', name: 'Marina Beach Mansion', price: 20000000, owned: false },
+        { id: 'biz_bay_area_towing', name: 'Bay Area Towing', price: 22500000, owned: false },
         { id: 'biz_jonny_tung', name: 'Jonny Tung', price: 25000000, owned: false },
         { id: 'biz_vanilla_unicorn', name: 'Vanilla Unicorn', price: 30000000, owned: false },
         { id: 'biz_bahama_mamas', name: 'Bahama Mamas', price: 32000000, owned: false },
@@ -1776,6 +1942,8 @@
         { id: 'biz_train_yard_paleto_bay', name: 'Train Yard - Paleto Bay', price: 80000000, owned: false },
         { id: 'biz_palmer_taylor_power_station', name: 'Palmer-Taylor Power Station', price: 80000000, owned: false },
         { id: 'biz_cayo_perico', name: 'Cayo Perico', price: 80000000, owned: false },
+        { id: 'biz_imperial_airlines', name: 'Imperial Airlines', price: 90000000, owned: false },
+        { id: 'biz_globe_oil', name: 'Globe Oil', price: 100000000, owned: false },
         { id: 'biz_walker_logistics', name: 'Walker Logistics', price: 120000000, owned: false },
         { id: 'biz_lsia', name: 'Los Santos International Airport', price: 125000000, owned: false },
         { id: 'biz_collins_petrochemical_corp', name: 'Collins Petrochemical Corp.', price: 125000000, owned: false },
@@ -1828,6 +1996,7 @@
             highestIncomePerSecond: highestIncomePerSecond,
             highestTotalEarnedInRun: highestTotalEarnedInRun,
             highestBusinessesOwnedInRun: highestBusinessesOwnedInRun,
+            highestCollectionsCompletedInRun: highestCollectionsCompletedInRun,
             highestLevelInRun: highestLevelInRun,
             highestPrestigeCountReached: highestPrestigeCountReached,
             secretAchievementUnlocks: ACHIEVEMENTS.filter(a => a.type === 'secret').map(a => ({ id: a.id, unlocked: a.unlocked })),
@@ -1910,6 +2079,7 @@
             highestIncomePerSecond = sanitizeNumber(parsedData.highestIncomePerSecond, 0, 0);
             highestTotalEarnedInRun = sanitizeNumber(parsedData.highestTotalEarnedInRun, 0, 0);
             highestBusinessesOwnedInRun = sanitizeNumber(parsedData.highestBusinessesOwnedInRun, 0, 0);
+            highestCollectionsCompletedInRun = sanitizeNumber(parsedData.highestCollectionsCompletedInRun, 0, 0);
             highestLevelInRun = sanitizeNumber(parsedData.highestLevelInRun, 0, 0);
             highestPrestigeCountReached = sanitizeNumber(parsedData.highestPrestigeCountReached, 0, 0);
 
@@ -1946,7 +2116,8 @@
 
             if (Array.isArray(parsedData.ownedBusinesses)) {
                 parsedData.ownedBusinesses.forEach(bizId => {
-                    const biz = businesses.find(b => b.id === bizId);
+                    const id = LEGACY_BUSINESS_ID_ALIASES[bizId] || bizId;
+                    const biz = businesses.find(b => b.id === id);
                     if (biz) biz.owned = true;
                 });
             }
@@ -1977,6 +2148,27 @@
     ];
 
     const MAX_PRESTIGE_LEVEL = 7;
+
+    const COLLECTIONS = [
+        { id: 'finances', name: 'Finances', icon: '💰', businessIds: ['biz_diamond_casino_resort', 'biz_pacific_standard_bank'] },
+        { id: 'offices', name: 'Offices', icon: '🏢', businessIds: ['biz_4_integrity_way', 'biz_jetsam_paleto_bay'] },
+        { id: 'bases', name: 'Bases', icon: '🪖', businessIds: ['biz_fort_zancudo', 'biz_aircraft_carrier', 'biz_mt_chiliad_base'] },
+        { id: 'clubs', name: 'Clubs', icon: '🎉', businessIds: ['biz_pacific_bluffs_country_club', 'biz_vanilla_unicorn', 'biz_bahama_mamas'] },
+        { id: 'criminal', name: 'Criminal', icon: '🔫', businessIds: ['biz_grandmas_house', 'biz_pier_400', 'biz_pandas_illicit_gains'] },
+        { id: 'hotels', name: 'Hotels', icon: '🏨', businessIds: ['biz_banner_hotel_spa', 'biz_venetian', 'biz_opium_nights_hotel'] },
+        { id: 'mansions', name: 'Mansions', icon: '🏰', businessIds: ['biz_marina_beach_mansion', 'biz_cayo_perico', 'biz_playboy_mansion'] },
+        { id: 'medical', name: 'Medical', icon: '🏥', businessIds: ['biz_wenger_institute', 'biz_parsons_rehab', 'biz_first_responders_llc'] },
+        { id: 'entertainment', name: 'Entertainment', icon: '🎭', businessIds: ['biz_sisyphus_theater', 'biz_maze_bank_arena', 'biz_rebel_radio', 'biz_ko_rtz'] },
+        { id: 'fast_foods', name: 'Fast Foods', icon: '🍔', businessIds: ['biz_la_vaca_loca', 'biz_hornys_burgers', 'biz_bishops_chicken', 'biz_clucking_bell_co'] },
+        { id: 'restaurants', name: 'Restaurants', icon: '🍽️', businessIds: ['biz_hookies', 'biz_caseys_diner', 'biz_barracuda_cafe', 'biz_yellowjack'] },
+        { id: 'warehouses', name: 'Warehouses', icon: '📦', businessIds: ['biz_fridgit_co', 'biz_bristols_storage', 'biz_lt_weld_supply_co', 'biz_walker_logistics'] },
+        { id: 'docks_shipyards', name: 'Docks & Shipyards', icon: '⚓', businessIds: ['biz_los_santos_docks', 'biz_jetsam_terminal', 'biz_catfish_view', 'biz_pacific_allied_shipyard', 'biz_juniper_shipping_yard'] },
+        { id: 'services', name: 'Services', icon: '🛠️', businessIds: ['biz_spokes_bike_rental', 'biz_harmony_gas_station', 'biz_alphamail_couriers_lsia', 'biz_medical_center_parking', 'biz_del_perro_pier', 'biz_satn', 'biz_bay_area_towing'] },
+        { id: 'transportation', name: 'Transportation', icon: '🚚', businessIds: ['biz_pala_springs_tramway', 'biz_sandy_shores_airfield', 'biz_lsia', 'biz_collinsco_cabbies', 'biz_rockwell_transport_solutions', 'biz_imperial_airlines'] },
+        { id: 'stores', name: 'Stores', icon: '🏬', businessIds: ['biz_vespucci_movie_masks', 'biz_sandy_shores_liquor', 'biz_you_tool_sandy_shores', 'biz_korean_plaza', 'biz_larss_elbo', 'biz_millars_boat_shop', 'biz_jonny_tung'] },
+        { id: 'train_yards', name: 'Train Yards', icon: '🚂', businessIds: ['biz_train_yard_mirror_park', 'biz_train_yard_la_mesa', 'biz_train_yard_ls_docks', 'biz_train_yard_ls_terminal', 'biz_train_yard_davis_quartz', 'biz_train_yard_sandy_shores', 'biz_train_yard_grapeseed', 'biz_train_yard_paleto_bay'] },
+        { id: 'industry', name: 'Industry', icon: '🏭', businessIds: ['biz_union_grain_grapeseed', 'biz_davis_quartz_quarry', 'biz_raven_slaughterhouse', 'biz_palmer_taylor_power_station', 'biz_collins_petrochemical_corp', 'biz_roxwood_power_plant', 'biz_ron_alternates_wind_farm', 'biz_tongva_hills_vineyard', 'biz_globe_oil'] }
+    ];
 
     const ACHIEVEMENTS = [
         {
@@ -2184,6 +2376,7 @@
         highestIncomePerSecond = 0;
         highestTotalEarnedInRun = 0;
         highestBusinessesOwnedInRun = 0;
+        highestCollectionsCompletedInRun = 0;
         highestLevelInRun = 0;
         highestPrestigeCountReached = 0;
         game = createDefaultGameState();
@@ -2315,9 +2508,14 @@
             .filter(u => u.type === 'tier')
             .reduce((sum, u) => sum + getTierIncomeBonus(u), 0);
 
+        const collectionBoostedIds = getCollectionBoostedBusinessIds();
         let businessIncome = businesses
             .filter(b => b.owned)
-            .reduce((sum, b) => sum + (b.price * BUSINESS_INCOME_RATE), 0) * getBusinessBoostMultiplier();
+            .reduce((sum, b) => {
+                let contribution = b.price * BUSINESS_INCOME_RATE;
+                if (collectionBoostedIds.has(b.id)) contribution *= (1 + COLLECTION_COMPLETION_BOOST_RATE);
+                return sum + contribution;
+            }, 0) * getBusinessBoostMultiplier();
 
         let total = game.baseIncome + tierIncome + businessIncome;
 
@@ -2557,6 +2755,63 @@
         prestigeUpgrades.forEach(up => container.appendChild(buildUpgradeCard(up)));
     }
 
+    function getCollectionOwnedCount(category) {
+        return category.businessIds.filter(id => {
+            const biz = businesses.find(b => b.id === id);
+            return biz && biz.owned;
+        }).length;
+    }
+
+    function isCollectionComplete(category) {
+        return category.businessIds.length > 0 && getCollectionOwnedCount(category) === category.businessIds.length;
+    }
+
+    function getCompletedCollectionsCount() {
+        return COLLECTIONS.filter(isCollectionComplete).length;
+    }
+
+    function getCollectionBoostedBusinessIds() {
+        const boosted = new Set();
+        COLLECTIONS.forEach(category => {
+            if (isCollectionComplete(category)) {
+                category.businessIds.forEach(id => boosted.add(id));
+            }
+        });
+        return boosted;
+    }
+
+    function buildCollectionCard(category) {
+        const card = document.createElement('div');
+        card.className = 'collection-card';
+        const ownedCount = getCollectionOwnedCount(category);
+        const complete = isCollectionComplete(category);
+        card.classList.toggle('collection-complete', complete);
+
+        const circles = category.businessIds.map(id => {
+            const biz = businesses.find(b => b.id === id);
+            const owned = !!(biz && biz.owned);
+            const name = biz ? biz.name : 'Unknown';
+            return `<div class="collection-circle${owned ? ' collection-circle-lit' : ''}" title="${name}"></div>`;
+        }).join('');
+
+        card.innerHTML = `
+            <div class="collection-icon">${category.icon}</div>
+            <div class="collection-info">
+                <div class="collection-name">${category.name}</div>
+                <div class="collection-count">${ownedCount} / ${category.businessIds.length}</div>
+                <div class="collection-circles">${circles}</div>
+                ${complete ? `<div class="collection-bonus-active">+${(COLLECTION_COMPLETION_BOOST_RATE * 100).toFixed(0)}% income bonus active</div>` : ''}
+            </div>
+        `;
+        return card;
+    }
+
+    function renderCollections() {
+        const container = document.getElementById('collections-container');
+        container.innerHTML = '';
+        COLLECTIONS.forEach(cat => container.appendChild(buildCollectionCard(cat)));
+    }
+
     function buildAchievementCard(achievement) {
         const card = document.createElement('div');
         card.dataset.achievementId = achievement.id;
@@ -2687,6 +2942,8 @@
         document.getElementById('stat-best-run-earnings').innerText = formatTT(highestTotalEarnedInRun);
         document.getElementById('stat-total-time-played').innerText = formatPlayTime(totalTimePlayedAllTime);
         document.getElementById('stat-total-prestiges-performed').innerText = totalPrestigesPerformed;
+        document.getElementById('stat-collections-completed').innerText = `${getCompletedCollectionsCount()} / ${COLLECTIONS.length}`;
+        document.getElementById('stat-collections-completed-best').innerText = highestCollectionsCompletedInRun;
         document.getElementById('stat-next-goal').innerText = cheapestUnowned
             ? `${cheapestUnowned.name} - ${formatTT(cheapestUnowned.price)} TT`
             : 'All businesses owned!';
@@ -2743,6 +3000,7 @@
             if (isTabActive('skills')) renderSkills();
             if (isTabActive('prestige')) renderPrestigeUpgrades();
             if (isTabActive('achievements')) renderAchievements();
+            if (isTabActive('collections')) { renderCollections(); updateCollectionsContainerHeight(); }
             if (isTabActive('businesses')) { renderBusinesses(); updateBusinessesContainerHeight(); }
         } else {
             if (isTabActive('upgrades')) refreshUpgradeAffordability();
@@ -2806,17 +3064,26 @@
         return !!tab && tab.classList.contains('active');
     }
 
-    function updateBusinessesContainerHeight() {
-        if (!isTabActive('businesses')) return;
+    function updateScrollableListHeight(containerId, tabName) {
+        if (!isTabActive(tabName)) return;
 
         const container = document.querySelector('.game-container');
-        const bizContainer = document.getElementById('businesses-container');
+        const scrollArea = document.querySelector('.game-scroll-area');
+        const listContainer = document.getElementById(containerId);
         const containerRect = container.getBoundingClientRect();
-        const bizRect = bizContainer.getBoundingClientRect();
-        const bottomPadding = parseFloat(getComputedStyle(container).paddingBottom) || 0;
+        const listRect = listContainer.getBoundingClientRect();
+        const bottomPadding = parseFloat(getComputedStyle(scrollArea).paddingBottom) || 0;
 
-        const available = containerRect.bottom - bizRect.top - bottomPadding;
-        bizContainer.style.maxHeight = Math.max(150, available) + 'px';
+        const available = containerRect.bottom - listRect.top - bottomPadding;
+        listContainer.style.maxHeight = Math.max(150, available) + 'px';
+    }
+
+    function updateBusinessesContainerHeight() {
+        updateScrollableListHeight('businesses-container', 'businesses');
+    }
+
+    function updateCollectionsContainerHeight() {
+        updateScrollableListHeight('collections-container', 'collections');
     }
 
     function scrollTabs(direction) {
@@ -2854,6 +3121,7 @@
         if (tabName === 'skills') renderSkills();
         if (tabName === 'prestige') renderPrestigeUpgrades();
         if (tabName === 'achievements') renderAchievements();
+        if (tabName === 'collections') { renderCollections(); updateCollectionsContainerHeight(); }
         if (tabName === 'businesses') {
             renderBusinesses();
             updateBusinessesContainerHeight();
@@ -2964,6 +3232,7 @@
             container.style.width = newWidth + 'px';
             container.style.height = newHeight + 'px';
             updateBusinessesContainerHeight();
+            updateCollectionsContainerHeight();
             updateTabScrollButtons();
             e.preventDefault();
         }
@@ -3004,6 +3273,7 @@
             highestIncomePerSecond = Math.max(highestIncomePerSecond, incomeRate);
             highestTotalEarnedInRun = Math.max(highestTotalEarnedInRun, game.totalEarned);
             highestBusinessesOwnedInRun = Math.max(highestBusinessesOwnedInRun, businesses.filter(b => b.owned).length);
+            highestCollectionsCompletedInRun = Math.max(highestCollectionsCompletedInRun, getCompletedCollectionsCount());
             highestLevelInRun = Math.max(highestLevelInRun, game.level);
             highestPrestigeCountReached = Math.max(highestPrestigeCountReached, prestigeCount);
             verifyStateIntegrityA(incomeRate);
