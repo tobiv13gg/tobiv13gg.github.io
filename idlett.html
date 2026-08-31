@@ -1104,15 +1104,22 @@
             box-shadow: 0 0 6px rgba(255, 201, 77, 0.6);
         }
 
-        .secret-squares {
+        .secret-slot-list {
             display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .secret-slot-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .secret-square {
             width: 36px;
             height: 36px;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1131,11 +1138,25 @@
             color: var(--accent-gold);
         }
 
-        .secret-revealed {
-            margin-top: 8px;
-            font-size: 0.8rem;
+        .secret-slot-text {
+            min-width: 0;
+        }
+
+        .secret-slot-name {
+            font-weight: 700;
             color: var(--accent-gold);
-            font-style: italic;
+            font-size: 0.9rem;
+        }
+
+        .secret-slot-name.secret-slot-locked {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .secret-slot-condition {
+            margin-top: 2px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
         }
 
         .reset-tab-intro {
@@ -1340,7 +1361,7 @@
     <button class="sound-toggle" id="sound-toggle-btn" onclick="toggleSound()" title="Toggle sound">🔊</button>
     <div class="game-scroll-area">
     <header>
-        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.1-rc.2</span></h1>
+        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.2-rc.1</span></h1>
         <p class="subtitle" id="subtitle-text">Welcome, Player. Gotta keep grinding 😽</p>
     </header>
 
@@ -1402,11 +1423,14 @@
             <div class="guide-title">How to Play</div>
             <ul class="guide-list">
                 <li>you earn TT/s passively - no clicking!</li>
-                <li>your main goal during the run is to collect all businesses</li>
-                <li>use your TT to buy Weapons, Trucks and Trailers - it all gives a slight boost to your income, but does not serve other purposes</li>
-                <li>Trailer needs Truck to be usable, you need to buy it first</li>
-                <li>better Trailers need better Trucks</li>
-                <li>don't be afraid to Prestige, it's relatively easy to reach and gives big boost in the new run (like a New Game+)</li>
+                <li>your main goal each run is to collect every business — keep an eye out for the cheapest one you don't own yet</li>
+                <li>spend TT on Weapons, Trucks and Trailers too — they all add a bit to your income</li>
+                <li>Trailer needs a Truck first, and better Trailers need better Trucks</li>
+                <li>upgrade Skills as you level up — they quietly boost your gear over time</li>
+                <li>check the Collections tab — matching sets of businesses reward you for finishing them</li>
+                <li>the Achievements tab tracks your milestones... and maybe a few secrets as well 👀</li>
+                <li>don't be afraid to Prestige — it resets your run but grants a permanent boost, like a New Game+</li>
+                <li>master a full Prestige run, and something even bigger might be waiting for you</li>
             </ul>
         </div>
     </div>
@@ -2207,12 +2231,20 @@
             getValue: () => highestPrestigeCountReached
         },
         {
+            id: 'collections_completed_milestones',
+            name: 'Collections Completed',
+            unit: '',
+            tiers: [1, 2, 4, 6, 8, 10, 12, 14, 16, 18],
+            getValue: () => highestCollectionsCompletedInRun
+        },
+        {
             id: 'secret_mystery_1',
             name: '???',
             type: 'secret',
-            slots: 2,
-            unlocked: [false, false],
-            slotNames: ['', 'Ah shit, here we go again...']
+            slots: 3,
+            unlocked: [false, false, false],
+            slotNames: ['Bullseye', 'Ah shit, here we go again...', "I don't know what I'm doing"],
+            slotConditions: ['Reach exactly 67.00 TT/s.', 'Complete your first Super Prestige.', 'Reach Prestige 5 without completing a single Collection.']
         }
     ];
 
@@ -2395,6 +2427,10 @@
     }
 
     async function confirmPrestige() {
+        if (prestigeCount === 4 && getCompletedCollectionsCount() === 0) {
+            const entry = ACHIEVEMENTS.find(a => a.id === 'secret_mystery_1');
+            if (entry) entry.unlocked[2] = true;
+        }
         prestigeCount++;
         prestigePoints++;
         totalPrestigesPerformed++;
@@ -2820,8 +2856,7 @@
             card.className = 'achievement-card';
             card.innerHTML = `
                 <div class="achievement-name">${achievement.name}</div>
-                <div class="secret-squares"></div>
-                <div class="secret-revealed"></div>
+                <div class="secret-slot-list"></div>
             `;
         } else {
             card.className = 'achievement-card achievement-card--tiered';
@@ -2842,16 +2877,15 @@
 
     function updateAchievementCard(card, achievement) {
         if (achievement.type === 'secret') {
-            const squares = achievement.unlocked
-                .map(isUnlocked => `<div class="secret-square${isUnlocked ? ' secret-square-unlocked' : ''}">${isUnlocked ? '✓' : '?'}</div>`)
-                .join('');
-            card.querySelector('.secret-squares').innerHTML = squares;
+            const rows = achievement.unlocked.map((isUnlocked, i) => {
+                const square = `<div class="secret-square${isUnlocked ? ' secret-square-unlocked' : ''}">${isUnlocked ? '✓' : '?'}</div>`;
+                const text = isUnlocked
+                    ? `<div class="secret-slot-name">${achievement.slotNames[i]}</div><div class="secret-slot-condition">${achievement.slotConditions[i]}</div>`
+                    : `<div class="secret-slot-name secret-slot-locked">???</div>`;
+                return `<div class="secret-slot-row">${square}<div class="secret-slot-text">${text}</div></div>`;
+            }).join('');
+            card.querySelector('.secret-slot-list').innerHTML = rows;
             card.classList.toggle('achievement-maxed', achievement.unlocked.every(Boolean));
-
-            const revealedNames = achievement.unlocked
-                .map((isUnlocked, i) => isUnlocked ? achievement.slotNames[i] : '')
-                .filter(name => name);
-            card.querySelector('.secret-revealed').innerText = revealedNames.join(' • ');
             return;
         }
 
