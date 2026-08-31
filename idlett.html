@@ -384,20 +384,6 @@
             padding: 40px 15px;
         }
 
-        .placeholder-stripe {
-            height: 10px;
-            border-radius: 2px;
-            margin-bottom: 24px;
-            background: repeating-linear-gradient(
-                135deg,
-                var(--accent-gold) 0px,
-                var(--accent-gold) 12px,
-                #1a1a1a 12px,
-                #1a1a1a 24px
-            );
-            opacity: 0.85;
-        }
-
         .placeholder-title {
             font-family: var(--font-display);
             color: var(--text-color);
@@ -1216,7 +1202,7 @@
     <div class="resize-handle" id="resize-handle" title="Drag to resize"></div>
     <button class="sound-toggle" id="sound-toggle-btn" onclick="toggleSound()" title="Toggle sound">🔊</button>
     <header>
-        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.0-rc.3</span></h1>
+        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.0-rc.4</span></h1>
         <p class="subtitle" id="subtitle-text">Welcome, player. Gotta keep grinding :meow:</p>
     </header>
 
@@ -1307,10 +1293,33 @@
     </div>
 
     <div class="tab-content" id="tab-prestige">
+        <div class="reset-panel reset-panel--super" id="super-prestige-panel" style="display:none;">
+            <div class="reset-panel-title">Super Prestige</div>
+            <div class="reset-panel-desc">Deeper reset than Prestige - lose all Prestige progress and upgrades too, keeping only your Lifetime Earnings. In exchange, gain a permanent +100% income bonus that stacks with every Super Prestige you complete.</div>
+            <button id="super-prestige-btn" class="reset-btn btn-block btn-super-solid" onclick="requestSuperPrestige()">Super Prestige</button>
+        </div>
+
         <div class="placeholder-box" id="prestige-locked-message">
             <div class="placeholder-title">Prestige once to unlock</div>
             <p class="placeholder-text">Complete your first Prestige to unlock this tab's upgrades.</p>
         </div>
+
+        <div class="reset-panel reset-panel--prestige">
+            <div class="reset-panel-title">Prestige</div>
+            <div class="reset-panel-desc">Soft reset. Keep lifetime earnings. Requires all conditions met:</div>
+            <div class="prestige-checklist" id="prestige-checklist">
+                <div id="prestige-check-level">❌ Level 100</div>
+                <div id="prestige-check-trailer">❌ Trailer</div>
+                <div id="prestige-check-weapon">❌ Weapon</div>
+                <div id="prestige-check-truck">❌ Truck</div>
+                <div id="prestige-check-biz73">❌ 10 Businesses</div>
+            </div>
+            <div class="prestige-checklist" id="prestige-max-message" style="display:none;">
+                <div style="color:var(--accent-gold);">You've reached the maximum Prestige level.</div>
+            </div>
+            <button id="prestige-btn" class="reset-btn btn-block btn-locked" disabled onclick="requestPrestige()">Prestige (locked)</button>
+        </div>
+
         <div id="prestige-unlocked-content" style="display:none;">
             <div id="prestige-tab-header">★ PRESTIGE - <span id="prestige-points-count">0</span> Points</div>
             <div class="upgrades-list" id="prestige-upgrades-container"></div>
@@ -1381,28 +1390,6 @@
             <div class="reset-panel-title">Hard Reset</div>
             <div class="reset-panel-desc">Clears EVERYTHING. No exceptions. All data gone.</div>
             <button class="reset-btn btn-block btn-danger-solid" onclick="requestHardReset()">Hard Reset</button>
-        </div>
-
-        <div class="reset-panel reset-panel--prestige">
-            <div class="reset-panel-title">Prestige</div>
-            <div class="reset-panel-desc">Soft reset. Keep lifetime earnings. Requires all conditions met:</div>
-            <div class="prestige-checklist" id="prestige-checklist">
-                <div id="prestige-check-level">❌ Level 100</div>
-                <div id="prestige-check-trailer">❌ Trailer</div>
-                <div id="prestige-check-weapon">❌ Weapon</div>
-                <div id="prestige-check-truck">❌ Truck</div>
-                <div id="prestige-check-biz73">❌ 10 Businesses</div>
-            </div>
-            <div class="prestige-checklist" id="prestige-max-message" style="display:none;">
-                <div style="color:var(--accent-gold);">You've reached the maximum Prestige level.</div>
-            </div>
-            <button id="prestige-btn" class="reset-btn btn-block btn-locked" disabled onclick="requestPrestige()">Prestige (locked)</button>
-        </div>
-
-        <div class="reset-panel reset-panel--super" id="super-prestige-panel" style="display:none;">
-            <div class="reset-panel-title">Super Prestige</div>
-            <div class="reset-panel-desc">Deeper reset than Prestige - lose all Prestige progress and upgrades too, keeping only your Lifetime Earnings. In exchange, gain a permanent +500% income bonus that stacks with every Super Prestige you complete.</div>
-            <button id="super-prestige-btn" class="reset-btn btn-block btn-super-solid" onclick="requestSuperPrestige()">Super Prestige</button>
         </div>
     </div>
 
@@ -2206,6 +2193,9 @@
         prestigePoints = 0;
         prestigeUpgrades.forEach(u => u.level = 0);
         superPrestigeCount = 0;
+        ACHIEVEMENTS.filter(a => a.type === 'secret').forEach(a => {
+            a.unlocked = a.unlocked.map(() => false);
+        });
         cancelReset();
         updateUI(undefined, true);
         await saveGame();
