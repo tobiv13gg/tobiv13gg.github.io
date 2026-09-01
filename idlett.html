@@ -275,7 +275,8 @@
             text-shadow: 0 0 10px rgba(31, 214, 242, 0.5);
         }
 
-        .tab-btn.active[data-tab="credits"] {
+        .tab-btn.active[data-tab="credits"],
+        .tab-btn.active[data-tab="changelog"] {
             color: var(--accent-pink);
             border-bottom-color: var(--accent-pink);
             text-shadow: 0 0 10px rgba(255, 46, 146, 0.5);
@@ -463,6 +464,16 @@
             letter-spacing: 2px;
             margin-bottom: 12px;
             text-shadow: 0 0 10px rgba(151, 251, 0, 0.4);
+        }
+
+        #changelog-tab-header {
+            text-align: center;
+            font-family: var(--font-display);
+            color: var(--accent-pink);
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            text-shadow: 0 0 10px rgba(255, 46, 146, 0.4);
         }
 
         #skills-tab-header {
@@ -938,6 +949,75 @@
             letter-spacing: 0.5px;
         }
 
+        .changelog-entry {
+            flex-shrink: 0;
+            background-color: var(--panel-bg-alt);
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--accent-pink);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .changelog-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 14px 16px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .changelog-version-date {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .changelog-version {
+            font-weight: 700;
+            color: var(--text-color);
+            font-family: var(--font-hud);
+        }
+
+        .changelog-date {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .changelog-chevron {
+            flex-shrink: 0;
+            color: var(--accent-pink);
+            transition: transform 0.2s;
+        }
+
+        .changelog-entry-expanded .changelog-chevron {
+            transform: rotate(90deg);
+        }
+
+        .changelog-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease;
+        }
+
+        .changelog-entry-expanded .changelog-body {
+            max-height: 600px;
+        }
+
+        .changelog-changes {
+            margin: 0;
+            padding: 0 16px 14px 32px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .changelog-changes li {
+            margin-bottom: 4px;
+        }
+
         .achievement-card {
             background-color: var(--panel-bg-alt);
             border: 1px solid var(--border-color);
@@ -982,6 +1062,25 @@
         .achievement-maxed .achievement-tier-badge {
             background: var(--accent-gold);
             color: #08090b;
+        }
+
+        .achievement-heart-badge {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.1rem;
+            line-height: 1;
+            color: var(--text-muted);
+            transition: color 0.2s, transform 0.2s;
+        }
+
+        .achievement-heart-badge-unlocked {
+            color: #ff3b5c;
+            text-shadow: 0 0 10px rgba(255, 59, 92, 0.7);
+            transform: scale(1.1);
         }
 
         .collection-card {
@@ -1361,7 +1460,7 @@
     <button class="sound-toggle" id="sound-toggle-btn" onclick="toggleSound()" title="Toggle sound">🔊</button>
     <div class="game-scroll-area">
     <header>
-        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.2-rc.1</span></h1>
+        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.2-rc.2</span></h1>
         <p class="subtitle" id="subtitle-text">Welcome, Player. Gotta keep grinding 😽</p>
     </header>
 
@@ -1378,6 +1477,7 @@
             <button class="tab-btn" data-tab="stats" onclick="switchTab('stats')">Stats</button>
             <button class="tab-btn" data-tab="reset" onclick="switchTab('reset')">Reset</button>
             <button class="tab-btn" data-tab="credits" onclick="switchTab('credits')">Credits</button>
+            <button class="tab-btn" data-tab="changelog" onclick="switchTab('changelog')">Changelog</button>
         </div>
         <button class="tab-scroll-btn tab-scroll-right" id="tab-scroll-right" onclick="scrollTabs(1)">›</button>
     </div>
@@ -1579,7 +1679,15 @@
                 <div class="credit-info">
                     <div class="credit-name">Extenze</div>
                     <div class="credit-role">my cute and sexy pookie bear</div>
-                    <div class="credit-message">For his awesome and immeasurable support.</div>
+                    <div class="credit-message">For his amazing and immeasurable support.</div>
+                </div>
+            </div>
+            <div class="credit-card">
+                <div class="credit-icon">☕</div>
+                <div class="credit-info">
+                    <div class="credit-name">Tobi</div>
+                    <div class="credit-role">game creator and designer</div>
+                    <div class="credit-message">Developed insomnia to finish this project.</div>
                 </div>
             </div>
             <div class="credit-card">
@@ -1598,6 +1706,11 @@
             </div>
         </div>
         <div class="credits-footer">Made with ❤️ and way too much TT/s math.</div>
+    </div>
+
+    <div class="tab-content" id="tab-changelog">
+        <div id="changelog-tab-header">📝 CHANGELOG</div>
+        <div class="upgrades-list" id="changelog-container"></div>
     </div>
     </div>
 </div>
@@ -1676,6 +1789,15 @@
     let totalPrestigesPerformed = 0;
     let highestBusinessesOwnedInRun = 0;
     let highestCollectionsCompletedInRun = 0;
+    let highestLegendarySevenOwnedInRun = 0;
+    const LEGENDARY_SEVEN_IDS = ['biz_pandas_illicit_gains', 'biz_first_responders_llc', 'biz_collinsco_cabbies', 'biz_rockwell_transport_solutions', 'biz_imperial_airlines', 'biz_bay_area_towing', 'biz_globe_oil'];
+
+    function getLegendarySevenOwnedCount() {
+        return LEGENDARY_SEVEN_IDS.filter(id => {
+            const biz = businesses.find(b => b.id === id);
+            return biz && biz.owned;
+        }).length;
+    }
     let highestLevelInRun = 0;
     let highestPrestigeCountReached = 0;
 
@@ -1981,8 +2103,41 @@
         { id: 'biz_satn', name: 'San Andreas Telecom Network', price: 750000000, owned: false }
     ];
 
-    let memoryFallback = null;
+    let memoryFallback = {};
     const SAVE_KEY = 'idle_tt_save';
+    const WINDOW_STATE_KEY = 'idle_tt_window_state';
+
+    async function storageSet(key, value) {
+        if (window.storage && typeof window.storage.set === 'function') {
+            try {
+                await window.storage.set(key, value);
+                return;
+            } catch (e) {
+                console.error("Storage set error", e);
+            }
+        }
+        try {
+            localStorage.setItem(key, value);
+        } catch (e) {
+            memoryFallback[key] = value;
+        }
+    }
+
+    async function storageGet(key) {
+        if (window.storage && typeof window.storage.get === 'function') {
+            try {
+                const result = await window.storage.get(key);
+                return result ? result.value : null;
+            } catch (e) {
+                return null;
+            }
+        }
+        try {
+            return localStorage.getItem(key);
+        } catch (e) {
+            return memoryFallback[key] || null;
+        }
+    }
 
     const SAVE_SALT = 'idleTT-v1-9f3ac2';
 
@@ -2021,6 +2176,7 @@
             highestTotalEarnedInRun: highestTotalEarnedInRun,
             highestBusinessesOwnedInRun: highestBusinessesOwnedInRun,
             highestCollectionsCompletedInRun: highestCollectionsCompletedInRun,
+            highestLegendarySevenOwnedInRun: highestLegendarySevenOwnedInRun,
             highestLevelInRun: highestLevelInRun,
             highestPrestigeCountReached: highestPrestigeCountReached,
             secretAchievementUnlocks: ACHIEVEMENTS.filter(a => a.type === 'secret').map(a => ({ id: a.id, unlocked: a.unlocked })),
@@ -2036,40 +2192,11 @@
             checksum: computeChecksum(saveData)
         };
         const serialized = JSON.stringify(payload);
-
-        if (window.storage && typeof window.storage.set === 'function') {
-            try {
-                await window.storage.set(SAVE_KEY, serialized);
-                return;
-            } catch (e) {
-                console.error("Save error (window.storage)", e);
-            }
-        }
-
-        try {
-            localStorage.setItem(SAVE_KEY, serialized);
-        } catch (e) {
-            memoryFallback = serialized;
-        }
+        await storageSet(SAVE_KEY, serialized);
     }
 
     async function loadGame() {
-        let saved = null;
-
-        if (window.storage && typeof window.storage.get === 'function') {
-            try {
-                const result = await window.storage.get(SAVE_KEY);
-                if (result) saved = result.value;
-            } catch (e) {
-                saved = null;
-            }
-        } else {
-            try {
-                saved = localStorage.getItem(SAVE_KEY);
-            } catch (e) {
-                saved = memoryFallback;
-            }
-        }
+        const saved = await storageGet(SAVE_KEY);
 
         if (!saved) return;
 
@@ -2104,6 +2231,7 @@
             highestTotalEarnedInRun = sanitizeNumber(parsedData.highestTotalEarnedInRun, 0, 0);
             highestBusinessesOwnedInRun = sanitizeNumber(parsedData.highestBusinessesOwnedInRun, 0, 0);
             highestCollectionsCompletedInRun = sanitizeNumber(parsedData.highestCollectionsCompletedInRun, 0, 0);
+            highestLegendarySevenOwnedInRun = sanitizeNumber(parsedData.highestLegendarySevenOwnedInRun, 0, 0);
             highestLevelInRun = sanitizeNumber(parsedData.highestLevelInRun, 0, 0);
             highestPrestigeCountReached = sanitizeNumber(parsedData.highestPrestigeCountReached, 0, 0);
 
@@ -2194,6 +2322,86 @@
         { id: 'industry', name: 'Industry', icon: '🏭', businessIds: ['biz_union_grain_grapeseed', 'biz_davis_quartz_quarry', 'biz_raven_slaughterhouse', 'biz_palmer_taylor_power_station', 'biz_globe_oil', 'biz_collins_petrochemical_corp', 'biz_roxwood_power_plant', 'biz_ron_alternates_wind_farm', 'biz_tongva_hills_vineyard'] }
     ];
 
+    // Add new entries at the TOP of this array (newest first).
+    // Format: { version: 'vX.Y.Z', date: 'YYYY-MM-DD', changes: ['Change one.', 'Change two.'] }
+    const CHANGELOG = [
+        { version: 'v1.2', date: '1.09.2026', changes: [
+            'Updated How to Play guide.',
+            '???',
+            'Size and position of the game window is now saved across sessions.',
+            'New achievement: The Legendary Seven.',
+            'Added Changelog tab to help with understanding changes.',
+            'Added historical Changelog entries.',
+            'Updated Credits page.'
+        ] },
+        { version: 'v1.1', date: '31.08.2026', changes: [
+            'Collections added! A new way to reflect your progress and completionism.',
+            'A completed Collection gives a slight income bonus to the businesses included in it.',
+            'Renamed "La Vaca Loco" business to lore-accurate "La Vaca Loca".',
+            'Renamed "Larss & Elboö" business to lore-accurate "Lârss & Elbö".',
+            'New stats in the Stats tab - Collections Completed (for current run and all-time).',
+            'Introduced 7 new Businesses based on our old Companies.',
+            'Stats have been reorganised.',
+            'Collections order fixed.',
+            'Expanded Collections explanation.',
+            'Changed welcoming message.'
+        ] },
+        { version: 'v1.0', date: '27.08.2026', changes: [
+            '(Hopefully) fixed a rare occurrence of the tab scrolling issue (thanks Cian).',
+            'Arrows are now clickable and switch to the previous or next tab (thanks Cian).',
+            'Prestige section (and all related content) moved to the Prestige tab.',
+            'Fixed a bug preventing secret achievements from being wiped by the Hard Reset function.'
+        ] },
+        { version: 'v0.6', date: '26.08.2026', changes: [
+            'Added 78 achievements.',
+            'Added new stats to the Stats tab.',
+            'Added Credits.',
+            'Added version badge.',
+            'Prestige system rebalance.',
+            'Added current achievement tier badge.',
+            'Layout reorganization.',
+            'Unlocking an achievement now plays a short tune as a notification (can be muted by the speaker button in the top right corner).'
+        ] },
+        { version: 'v0.5', date: '25.08.2026', changes: [
+            'QoL change allowing to spend 5 Level points at once.',
+            'Introduced Prestige 7, altering current prestige requirements.',
+            'Introduced Super Prestige, a nice way to start all over again (with a stacking 5x boost as a reward).',
+            'Added 2 new tabs - Achievements and Credits.',
+            'Prestige tab is now always visible, not only after prestige.',
+            'UI improvement to fix tab visibility issue (too many tabs, oof).',
+            'Visual revamp.',
+            'A few more stats.'
+        ] },
+        { version: 'v0.4', date: '25.08.2026', changes: [
+            'Changed starting Truck tier, Speedo Express is now purchasable.',
+            'Renamed first tab to "Game".',
+            'Stats moved to a new tab.',
+            'Added short "How to Play" explanation to the first (main) tab.'
+        ] },
+        { version: 'v0.3', date: '24.08.2026', changes: [
+            'Visual round up fix.',
+            'Trailer upgrades now require Trucks to be purchasable.',
+            'Some better Trailers now require better Trucks.',
+            'Double Income Token now lasts 2h and costs 45k TT.',
+            'Prestige system implemented (6 prestige levels, additional Prestige Point upgrades, 100% income boost per prestige level).',
+            'Level capped to 632.',
+            'Backend code cleanup.',
+            'Nerfed skill level token boost.'
+        ] },
+        { version: 'v0.2', date: '24.08.2026', changes: [
+            'Changed background to transparent.',
+            'Game window is now draggable and resizable.',
+            'Business tab now adapts to window size.',
+            'Added new Weapon upgrades with passive income (24 new upgrades!).',
+            'Added new Truck upgrades with passive income (11 new upgrades!).',
+            'Updated Prestige requirements to include new upgrades.',
+            'Rebalanced entire economy.',
+            "Introduced Level Tokens and added additional token-paid upgrades to empower current upgrades' income.",
+            'Minor QoL changes.'
+        ] },
+        { version: 'v0.1', date: '23.08.2026', changes: ['Created initial game version.'] }
+    ];
+
     const ACHIEVEMENTS = [
         {
             id: 'income_milestones',
@@ -2236,6 +2444,14 @@
             unit: '',
             tiers: [1, 2, 4, 6, 8, 10, 12, 14, 16, 18],
             getValue: () => highestCollectionsCompletedInRun
+        },
+        {
+            id: 'legendary_seven',
+            name: 'The Legendary Seven',
+            unit: '',
+            tiers: [7],
+            badgeType: 'heart',
+            getValue: () => highestLegendarySevenOwnedInRun
         },
         {
             id: 'secret_mystery_1',
@@ -2409,6 +2625,7 @@
         highestTotalEarnedInRun = 0;
         highestBusinessesOwnedInRun = 0;
         highestCollectionsCompletedInRun = 0;
+        highestLegendarySevenOwnedInRun = 0;
         highestLevelInRun = 0;
         highestPrestigeCountReached = 0;
         game = createDefaultGameState();
@@ -2848,6 +3065,40 @@
         COLLECTIONS.forEach(cat => container.appendChild(buildCollectionCard(cat)));
     }
 
+    function toggleChangelogEntry(index) {
+        const entry = document.getElementById('changelog-entry-' + index);
+        if (entry) entry.classList.toggle('changelog-entry-expanded');
+    }
+
+    function renderChangelog() {
+        const container = document.getElementById('changelog-container');
+        if (CHANGELOG.length === 0) {
+            container.innerHTML = `
+                <div class="placeholder-box">
+                    <div class="placeholder-title">No entries yet</div>
+                    <p class="placeholder-text">Changelog entries will appear here.</p>
+                </div>
+            `;
+            return;
+        }
+        container.innerHTML = CHANGELOG.map((entry, i) => `
+            <div class="changelog-entry" id="changelog-entry-${i}">
+                <div class="changelog-header" onclick="toggleChangelogEntry(${i})">
+                    <div class="changelog-version-date">
+                        <span class="changelog-version">${entry.version}</span>
+                        <span class="changelog-date">${entry.date}</span>
+                    </div>
+                    <span class="changelog-chevron">▸</span>
+                </div>
+                <div class="changelog-body">
+                    <ul class="changelog-changes">
+                        ${entry.changes.map(c => `<li>${c}</li>`).join('')}
+                    </ul>
+                </div>
+            </div>
+        `).join('');
+    }
+
     function buildAchievementCard(achievement) {
         const card = document.createElement('div');
         card.dataset.achievementId = achievement.id;
@@ -2859,6 +3110,7 @@
                 <div class="secret-slot-list"></div>
             `;
         } else {
+            const badgeClass = achievement.badgeType === 'heart' ? 'achievement-heart-badge' : 'achievement-tier-badge';
             card.className = 'achievement-card achievement-card--tiered';
             card.innerHTML = `
                 <div class="achievement-info">
@@ -2867,7 +3119,7 @@
                     <div class="achievement-next"></div>
                     <div class="achievement-tier-track"><div class="achievement-tier-fill"></div></div>
                 </div>
-                <div class="achievement-tier-badge"></div>
+                <div class="${badgeClass}"></div>
             `;
         }
 
@@ -2894,7 +3146,13 @@
         const value = achievement.getValue();
 
         card.classList.toggle('achievement-maxed', maxed);
-        card.querySelector('.achievement-tier-badge').innerText = tierCount;
+        if (achievement.badgeType === 'heart') {
+            const badge = card.querySelector('.achievement-heart-badge');
+            badge.innerText = maxed ? '♥' : '♡';
+            badge.classList.toggle('achievement-heart-badge-unlocked', maxed);
+        } else {
+            card.querySelector('.achievement-tier-badge').innerText = tierCount;
+        }
         card.querySelector('.achievement-current').innerText = `Current: ${formatTT(value)} ${achievement.unit}`;
         card.querySelector('.achievement-next').innerText = maxed
             ? `All ${achievement.tiers.length} tiers unlocked!`
@@ -3156,9 +3414,60 @@
         if (tabName === 'prestige') renderPrestigeUpgrades();
         if (tabName === 'achievements') renderAchievements();
         if (tabName === 'collections') { renderCollections(); updateCollectionsContainerHeight(); }
+        if (tabName === 'changelog') renderChangelog();
         if (tabName === 'businesses') {
             renderBusinesses();
             updateBusinessesContainerHeight();
+        }
+    }
+
+    const WINDOW_MIN_WIDTH = 300;
+    const WINDOW_MIN_HEIGHT = 340;
+
+    async function saveWindowState() {
+        const container = document.querySelector('.game-container');
+        const rect = container.getBoundingClientRect();
+        const state = {
+            left: rect.left,
+            top: rect.top,
+            width: container.style.width || null,
+            height: container.style.height || null
+        };
+        await storageSet(WINDOW_STATE_KEY, JSON.stringify(state));
+    }
+
+    async function restoreWindowState() {
+        const saved = await storageGet(WINDOW_STATE_KEY);
+        if (!saved) return;
+
+        let state;
+        try {
+            state = JSON.parse(saved);
+        } catch (e) {
+            return;
+        }
+        if (typeof state !== 'object' || state === null) return;
+
+        const container = document.querySelector('.game-container');
+        const minVisible = 40;
+
+        if (state.width) {
+            const width = Math.max(WINDOW_MIN_WIDTH, Math.min(parseFloat(state.width), window.innerWidth));
+            container.style.width = width + 'px';
+            container.style.maxWidth = 'none';
+        }
+        if (state.height) {
+            const height = Math.max(WINDOW_MIN_HEIGHT, Math.min(parseFloat(state.height), window.innerHeight));
+            container.style.height = height + 'px';
+        }
+
+        if (typeof state.left === 'number' && typeof state.top === 'number') {
+            const rect = container.getBoundingClientRect();
+            const left = Math.max(minVisible - rect.width, Math.min(state.left, window.innerWidth - minVisible));
+            const top = Math.max(0, Math.min(state.top, window.innerHeight - minVisible));
+            container.style.left = left + 'px';
+            container.style.top = top + 'px';
+            container.style.transform = 'none';
         }
     }
 
@@ -3206,8 +3515,10 @@
         }
 
         function endDrag() {
+            if (!isDragging) return;
             isDragging = false;
             handle.classList.remove('dragging');
+            saveWindowState();
         }
 
         handle.addEventListener('mousedown', beginDrag);
@@ -3226,9 +3537,6 @@
         let startPointerY = 0;
         let startWidth = 0;
         let startHeight = 0;
-
-        const MIN_WIDTH = 300;
-        const MIN_HEIGHT = 340;
 
         function beginResize(e) {
             const point = e.touches ? e.touches[0] : e;
@@ -3257,11 +3565,11 @@
             const dy = point.clientY - startPointerY;
 
             const rect = container.getBoundingClientRect();
-            const maxWidth = Math.max(MIN_WIDTH, window.innerWidth - rect.left - 10);
-            const maxHeight = Math.max(MIN_HEIGHT, window.innerHeight - rect.top - 10);
+            const maxWidth = Math.max(WINDOW_MIN_WIDTH, window.innerWidth - rect.left - 10);
+            const maxHeight = Math.max(WINDOW_MIN_HEIGHT, window.innerHeight - rect.top - 10);
 
-            const newWidth = Math.max(MIN_WIDTH, Math.min(maxWidth, startWidth + dx));
-            const newHeight = Math.max(MIN_HEIGHT, Math.min(maxHeight, startHeight + dy));
+            const newWidth = Math.max(WINDOW_MIN_WIDTH, Math.min(maxWidth, startWidth + dx));
+            const newHeight = Math.max(WINDOW_MIN_HEIGHT, Math.min(maxHeight, startHeight + dy));
 
             container.style.width = newWidth + 'px';
             container.style.height = newHeight + 'px';
@@ -3272,8 +3580,10 @@
         }
 
         function endResize() {
+            if (!isResizing) return;
             isResizing = false;
             handle.classList.remove('resizing');
+            saveWindowState();
         }
 
         handle.addEventListener('mousedown', beginResize);
@@ -3286,6 +3596,7 @@
 
     (async function init() {
         await loadGame();
+        await restoreWindowState();
         updateUI(undefined, true);
         initDragging();
         initResizing();
@@ -3308,6 +3619,7 @@
             highestTotalEarnedInRun = Math.max(highestTotalEarnedInRun, game.totalEarned);
             highestBusinessesOwnedInRun = Math.max(highestBusinessesOwnedInRun, businesses.filter(b => b.owned).length);
             highestCollectionsCompletedInRun = Math.max(highestCollectionsCompletedInRun, getCompletedCollectionsCount());
+            highestLegendarySevenOwnedInRun = Math.max(highestLegendarySevenOwnedInRun, getLegendarySevenOwnedCount());
             highestLevelInRun = Math.max(highestLevelInRun, game.level);
             highestPrestigeCountReached = Math.max(highestPrestigeCountReached, prestigeCount);
             verifyStateIntegrityA(incomeRate);
@@ -3325,6 +3637,7 @@
     window.requestPrestige = requestPrestige;
     window.requestSuperPrestige = requestSuperPrestige;
     window.toggleSound = toggleSound;
+    window.toggleChangelogEntry = toggleChangelogEntry;
     window.playAchievementSound = playAchievementSound;
     window.confirmHardReset = confirmHardReset;
     window.confirmPrestige = confirmPrestige;
