@@ -142,6 +142,68 @@
             color: var(--accent-color);
         }
 
+        .achievement-toast-container {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            width: calc(100% - 24px);
+            max-width: 360px;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .achievement-toast {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 100%;
+            background: var(--panel-bg);
+            border: 1px solid var(--accent-gold);
+            border-radius: 6px;
+            padding: 10px 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 12px rgba(255, 201, 77, 0.35);
+            animation: achievement-toast-in 0.3s ease, achievement-toast-out 0.3s ease 3.7s forwards;
+        }
+
+        .achievement-toast-icon {
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .achievement-toast-text {
+            min-width: 0;
+        }
+
+        .achievement-toast-title {
+            font-size: 0.68rem;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .achievement-toast-name {
+            font-size: 0.82rem;
+            color: var(--text-color);
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @keyframes achievement-toast-in {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes achievement-toast-out {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(16px); }
+        }
+
         .resize-handle::after {
             content: "";
             position: absolute;
@@ -1458,6 +1520,7 @@
 <div class="game-container">
     <div class="resize-handle" id="resize-handle" title="Drag to resize"></div>
     <button class="sound-toggle" id="sound-toggle-btn" onclick="toggleSound()" title="Toggle sound">🔊</button>
+    <div class="achievement-toast-container" id="achievement-toast-container"></div>
     <div class="game-scroll-area">
     <header>
         <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.2-rc.2</span></h1>
@@ -2332,7 +2395,8 @@
             'New achievement: The Legendary Seven.',
             'Added Changelog tab to help with understanding changes.',
             'Added historical Changelog entries.',
-            'Updated Credits page.'
+            'Updated Credits page.',
+            'Added a small, friendly achievement notification popup.'
         ] },
         { version: 'v1.1', date: '31.08.2026', changes: [
             'Collections added! A new way to reflect your progress and completionism.',
@@ -2494,7 +2558,10 @@
 
     let soundEnabled = true;
     let audioContext = null;
-    let lastKnownTiersUnlocked = null;
+    let lastKnownTierCounts = {};
+    let lastKnownSecretStates = {};
+    let toastQueue = [];
+    let toastShowing = false;
 
     function playAchievementSound() {
         if (!soundEnabled) return;
@@ -2524,12 +2591,65 @@
         });
     }
 
+    function queueAchievementToast(title, message) {
+        toastQueue.push({ title, message });
+        processToastQueue();
+    }
+
+    function processToastQueue() {
+        if (toastShowing || toastQueue.length === 0) return;
+        const container = document.getElementById('achievement-toast-container');
+        if (!container) return;
+
+        toastShowing = true;
+        const { title, message } = toastQueue.shift();
+
+        const toast = document.createElement('div');
+        toast.className = 'achievement-toast';
+        toast.innerHTML = `
+            <div class="achievement-toast-icon">🏆</div>
+            <div class="achievement-toast-text">
+                <div class="achievement-toast-title">${title}</div>
+                <div class="achievement-toast-name">${message}</div>
+            </div>
+        `;
+        container.innerHTML = '';
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.remove();
+            toastShowing = false;
+            processToastQueue();
+        }, 4000);
+    }
+
     function checkForNewAchievementUnlocks() {
-        const current = getTotalAchievementTiersUnlocked();
-        if (lastKnownTiersUnlocked !== null && current > lastKnownTiersUnlocked) {
-            playAchievementSound();
-        }
-        lastKnownTiersUnlocked = current;
+        let anyNewUnlock = false;
+
+        ACHIEVEMENTS.forEach(achievement => {
+            if (achievement.type === 'secret') {
+                const prevState = lastKnownSecretStates[achievement.id];
+                if (prevState) {
+                    achievement.unlocked.forEach((isUnlocked, i) => {
+                        if (isUnlocked && !prevState[i]) {
+                            anyNewUnlock = true;
+                            queueAchievementToast('🔓 Secret Unlocked!', achievement.slotNames[i]);
+                        }
+                    });
+                }
+                lastKnownSecretStates[achievement.id] = achievement.unlocked.slice();
+            } else {
+                const current = getAchievementTierCount(achievement);
+                const previous = lastKnownTierCounts[achievement.id];
+                if (previous !== undefined && current > previous) {
+                    anyNewUnlock = true;
+                    queueAchievementToast('🏆 Achievement Unlocked!', `${achievement.name} — Tier ${current}/${achievement.tiers.length}`);
+                }
+                lastKnownTierCounts[achievement.id] = current;
+            }
+        });
+
+        if (anyNewUnlock) playAchievementSound();
     }
 
     function toggleSound() {
