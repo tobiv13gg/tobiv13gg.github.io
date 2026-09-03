@@ -3228,6 +3228,7 @@
 
         const card = document.createElement('div');
         card.className = (isMaxed || locked) ? 'upgrade-card owned' : 'upgrade-card';
+        card.dataset.upgradeId = up.id;
         card.innerHTML = `
             <div class="upgrade-info">
                 <div class="upgrade-name">${displayName}</div>
@@ -3664,9 +3665,8 @@
     }
 
     function refreshCardAffordability(container, items) {
-        const cards = container.children;
-        items.forEach((up, i) => {
-            const card = cards[i];
+        items.forEach(up => {
+            const card = container.querySelector(`[data-upgrade-id="${up.id}"]`);
             if (!card) return;
             const isMaxed = up.maxLevel && up.level >= up.maxLevel;
             if (isMaxed || !isPrerequisiteMet(up)) return;
