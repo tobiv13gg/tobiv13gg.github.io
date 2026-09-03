@@ -322,7 +322,6 @@
 
         .tab-btn.active[data-tab="main"],
         .tab-btn.active[data-tab="upgrades"],
-        .tab-btn.active[data-tab="skills"],
         .tab-btn.active[data-tab="businesses"],
         .tab-btn.active[data-tab="collections"] {
             color: var(--accent-color);
@@ -538,7 +537,7 @@
             text-shadow: 0 0 10px rgba(255, 46, 146, 0.4);
         }
 
-        #skills-tab-header {
+        #upgrades-tab-header {
             text-align: center;
             font-family: var(--font-display);
             color: var(--accent-color);
@@ -548,7 +547,7 @@
             text-shadow: 0 0 10px rgba(151, 251, 0, 0.4);
         }
 
-        #skills-tab-header span {
+        #upgrades-tab-header span {
             font-family: var(--font-hud);
         }
 
@@ -1585,7 +1584,7 @@
     <div class="achievement-toast-container" id="achievement-toast-container"></div>
     <div class="game-scroll-area">
     <header>
-        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.3.2-rc.1</span></h1>
+        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.3.3-rc.1</span></h1>
         <p class="subtitle" id="subtitle-text">Welcome, Player. Gotta keep grinding 😽</p>
     </header>
 
@@ -1594,7 +1593,6 @@
         <div class="tab-nav" id="tab-nav">
             <button class="tab-btn active" data-tab="main" onclick="switchTab('main')">Game</button>
             <button class="tab-btn" data-tab="upgrades" onclick="switchTab('upgrades')">Upgrades</button>
-            <button class="tab-btn" data-tab="skills" onclick="switchTab('skills')">Skills</button>
             <button class="tab-btn" data-tab="businesses" onclick="switchTab('businesses')">Businesses</button>
             <button class="tab-btn" data-tab="collections" onclick="switchTab('collections')">Collections</button>
             <button class="tab-btn" data-tab="prestige" onclick="switchTab('prestige')">Prestige</button>
@@ -1662,15 +1660,9 @@
     </div>
 
     <div class="tab-content" id="tab-upgrades">
+        <div id="upgrades-tab-header">🔧 UPGRADES - <span id="upgrades-token-count">0</span> Level Tokens</div>
         <div class="upgrades-list" id="upgrades-container">
             <!-- Upgrades generated dynamically by JS -->
-        </div>
-    </div>
-
-    <div class="tab-content" id="tab-skills">
-        <div id="skills-tab-header">⚡ SKILLS - <span id="skills-token-count">0</span> Level Tokens</div>
-        <div class="upgrades-list" id="skills-container">
-            <!-- Skills generated dynamically by JS -->
         </div>
     </div>
 
@@ -2059,17 +2051,19 @@
             baseCost: 45,
             costMultiplier: 1.5,
             level: 0,
-            maxLevel: 24,
+            maxLevel: 34,
             type: 'tier',
             tierZeroName: 'Fists',
             tierNames: [
-                'Knife', 'Machete', 'SNS Pistol', 'Combat Pistol', 'AP Pistol',
-                'Heavy Pistol', 'Machine Pistol', 'SMG', 'Combat PDW', 'Gusenberg',
-                'Assault SMG', 'Sawed-Off Shotgun', 'Pump Shotgun', 'Heavy Shotgun',
-                'Assault Rifle', 'Carbine Rifle', 'Special Carbine', 'Marksman Rifle',
-                'Sniper Rifle', 'Heavy Sniper', 'Grenade Launcher', 'RPG', 'Railgun', 'Minigun'
+                'Knuckledusters', 'Knife', 'Baseball Bat', 'Machete', 'Stun Gun',
+                'SNS Pistol', 'Combat Pistol', 'AP Pistol', 'Heavy Pistol', 'Machine Pistol',
+                'Pistol .50', 'Micro SMG', 'SMG', 'Combat PDW', 'Gusenberg',
+                'Assault SMG', 'Sawed-Off Shotgun', 'Pump Shotgun', 'Bullpup Shotgun', 'Assault Shotgun',
+                'Heavy Shotgun', 'Assault Rifle', 'Advanced Rifle', 'Bullpup Rifle', 'Carbine Rifle',
+                'Special Carbine', 'Marksman Rifle', 'Sniper Rifle', 'Heavy Sniper', 'Grenade Launcher',
+                'RPG', 'Homing Launcher', 'Railgun', 'Minigun'
             ],
-            tierValues: [0.021, 0.026, 0.033, 0.04, 0.049, 0.062, 0.077, 0.096, 0.119, 0.147, 0.183, 0.228, 0.284, 0.352, 0.438, 0.545, 0.677, 0.842, 1.047, 1.302, 1.619, 2.013, 2.503, 3.113],
+            tierValues: [0.021, 0.026, 0.032, 0.04, 0.05, 0.062, 0.077, 0.096, 0.12, 0.149, 0.185, 0.229, 0.285, 0.354, 0.44, 0.547, 0.68, 0.845, 1.051, 1.306, 1.623, 2.017, 2.507, 3.116, 3.872, 4.812, 5.981, 7.433, 9.237, 11.48, 14.268, 17.732, 22.038, 27.389],
             incomeScale: 1
         },
         {
@@ -2079,15 +2073,16 @@
             baseCost: 220,
             costMultiplier: 2.0,
             level: 0,
-            maxLevel: 12,
+            maxLevel: 19,
             type: 'tier',
             tierZeroName: 'None',
             firstTierCost: 10,
             tierNames: [
-                'Speedo Express', 'Voyager', 'Packer', 'Phantom', 'Roadkiller', 'Hauler', 'Ural',
-                'Cerberus', 'Longpath', 'CollinsCo Phantom', 'Phantom Custom', 'Phantom Wedge'
+                'Speedo Express', 'Voyager Box SBW', 'Blacktop', 'Packer', 'Voyager', 'Roadkiller', 'Hauler',
+                'Phantom', 'Phantom Heavy Haul', 'Semilander', 'L300', 'MTL Linerunner', 'Ural',
+                'Cerberus', 'Longpath', 'Phantom Custom', 'CollinsCo Phantom', 'Phantom Wedge', 'Chernobog Toter'
             ],
-            tierValues: [0.02, 0.053, 0.084, 0.137, 0.221, 0.357, 0.578, 0.924, 1.502, 2.415, 3.906, 6.3],
+            tierValues: [0.02, 0.053, 0.085, 0.137, 0.221, 0.356, 0.574, 0.926, 1.493, 2.408, 3.883, 6.262, 10.098, 16.284, 26.259, 42.344, 68.283, 110.111, 177.562],
             incomeScale: 1
         },
         {
@@ -2103,10 +2098,10 @@
             incomeScale: 0.00028,
             unitLabel: 'kg capacity',
             levelRequirements: {
-                1: { id: 'truck_tier', level: 2 },
-                4: { id: 'truck_tier', level: 4 },
-                8: { id: 'truck_tier', level: 7 },
-                12: { id: 'truck_tier', level: 10 }
+                1: { id: 'truck_tier', level: 5 },
+                4: { id: 'truck_tier', level: 8 },
+                8: { id: 'truck_tier', level: 13 },
+                12: { id: 'truck_tier', level: 17 }
             }
         },
         {
@@ -2428,12 +2423,12 @@
     }
 
     const PRESTIGE_REQUIREMENTS = [
-        { trailerTier: 2, weaponTierName: 'Machine Pistol', truckTierName: 'Packer', requiredLevel: 100 },
-        { trailerTier: 4, weaponTierName: 'Assault SMG', truckTierName: 'Roadkiller', requiredLevel: 200 },
-        { trailerTier: 6, weaponTierName: 'Heavy Shotgun', truckTierName: 'Ural', requiredLevel: 300 },
-        { trailerTier: 8, weaponTierName: 'Special Carbine', truckTierName: 'Longpath', requiredLevel: 400 },
-        { trailerTier: 10, weaponTierName: 'Heavy Sniper', truckTierName: 'CollinsCo Phantom', requiredLevel: 500 },
-        { trailerTier: 12, weaponTierName: 'RPG', truckTierName: 'Phantom Custom', requiredLevel: 600 },
+        { trailerTier: 2, weaponTierName: 'Stun Gun', truckTierName: 'Blacktop', requiredLevel: 100 },
+        { trailerTier: 4, weaponTierName: 'Machine Pistol', truckTierName: 'Roadkiller', requiredLevel: 200 },
+        { trailerTier: 6, weaponTierName: 'Gusenberg', truckTierName: 'Phantom Heavy Haul', requiredLevel: 300 },
+        { trailerTier: 8, weaponTierName: 'Assault Shotgun', truckTierName: 'MTL Linerunner', requiredLevel: 400 },
+        { trailerTier: 10, weaponTierName: 'Carbine Rifle', truckTierName: 'Cerberus', requiredLevel: 500 },
+        { trailerTier: 12, weaponTierName: 'Grenade Launcher', truckTierName: 'Phantom Custom', requiredLevel: 600 },
         { trailerTier: 14, weaponTierName: 'Minigun', truckTierName: 'Phantom Wedge', requiredLevel: 632 }
     ];
 
@@ -2472,7 +2467,12 @@
             'Added a tooltip explanation of current TT/s income.',
             'Updated "Businesses Owned" Achievement max tier to 80.',
             'Introduced additional "Income Milestones" Achievement tiers (125K -> 35M TT/s).',
-            'Added a "Buy Now" button to the Next Business Goal that will be displayed once we can afford it.'
+            'Added a "Buy Now" button to the Next Business Goal that will be displayed once we can afford it.',
+            'Added new Weapons and Trucks.',
+            'Changed Prestige requirements.',
+            '???',
+            'Level Token upgrades moved to the Upgrades tab.',
+            'Skills tab removed.'
         ] },
         { version: 'v1.2', date: '1.09.2026', changes: [
             'Updated How to Play guide.',
@@ -3242,24 +3242,21 @@
         return card;
     }
 
+    function getUpgradesTabList() {
+        return [...upgrades].sort((a, b) => {
+            if (a.id === 'double_income_token') return 1;
+            if (b.id === 'double_income_token') return -1;
+            return 0;
+        });
+    }
+
     function renderUpgrades() {
+        document.getElementById('upgrades-token-count').innerText = game.levelTokens;
+
         const container = document.getElementById('upgrades-container');
         container.innerHTML = '';
 
-        upgrades
-            .filter(up => up.type !== 'skill_income_boost')
-            .forEach(up => container.appendChild(buildUpgradeCard(up)));
-    }
-
-    function renderSkills() {
-        document.getElementById('skills-token-count').innerText = game.levelTokens;
-
-        const container = document.getElementById('skills-container');
-        container.innerHTML = '';
-
-        upgrades
-            .filter(up => up.type === 'skill_income_boost')
-            .forEach(up => container.appendChild(buildUpgradeCard(up)));
+        getUpgradesTabList().forEach(up => container.appendChild(buildUpgradeCard(up)));
     }
 
     function renderPrestigeUpgrades() {
@@ -3653,14 +3650,12 @@
 
         if (forceFullRerender) {
             if (isTabActive('upgrades')) renderUpgrades();
-            if (isTabActive('skills')) renderSkills();
             if (isTabActive('prestige')) renderPrestigeUpgrades();
             if (isTabActive('achievements')) renderAchievements();
             if (isTabActive('collections')) { renderCollections(); updateCollectionsContainerHeight(); }
             if (isTabActive('businesses')) { renderBusinesses(); updateBusinessesContainerHeight(); }
         } else {
             if (isTabActive('upgrades')) refreshUpgradeAffordability();
-            if (isTabActive('skills')) refreshSkillAffordability();
             if (isTabActive('prestige')) refreshPrestigeAffordability();
             if (isTabActive('achievements')) refreshAchievementsDisplay();
             if (isTabActive('businesses')) refreshBusinessAffordability();
@@ -3688,14 +3683,9 @@
     }
 
     function refreshUpgradeAffordability() {
+        document.getElementById('upgrades-token-count').innerText = game.levelTokens;
         const container = document.getElementById('upgrades-container');
-        refreshCardAffordability(container, upgrades.filter(up => up.type !== 'skill_income_boost'));
-    }
-
-    function refreshSkillAffordability() {
-        document.getElementById('skills-token-count').innerText = game.levelTokens;
-        const container = document.getElementById('skills-container');
-        refreshCardAffordability(container, upgrades.filter(up => up.type === 'skill_income_boost'));
+        refreshCardAffordability(container, getUpgradesTabList());
     }
 
     function refreshPrestigeAffordability() {
@@ -3774,7 +3764,6 @@
         updateTabScrollButtons();
 
         if (tabName === 'upgrades') renderUpgrades();
-        if (tabName === 'skills') renderSkills();
         if (tabName === 'prestige') renderPrestigeUpgrades();
         if (tabName === 'achievements') renderAchievements();
         if (tabName === 'collections') { renderCollections(); updateCollectionsContainerHeight(); }
