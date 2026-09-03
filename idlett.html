@@ -1561,7 +1561,7 @@
     <div class="achievement-toast-container" id="achievement-toast-container"></div>
     <div class="game-scroll-area">
     <header>
-        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.3.1-rc.1</span></h1>
+        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.3.2-rc.1</span></h1>
         <p class="subtitle" id="subtitle-text">Welcome, Player. Gotta keep grinding 😽</p>
     </header>
 
@@ -2444,7 +2444,9 @@
             'Set a consistent number formatting (1.234.567,89).',
             'Updated Credits.',
             'Business income is now correctly displayed after increase.',
-            'Added a tooltip explanation of current TT/s income.'
+            'Added a tooltip explanation of current TT/s income.',
+            'Updated "Businesses Owned" Achievement max tier to 80.',
+            'Introduced additional "Income Milestones" Achievement tiers (125K -> 35M TT/s).'
         ] },
         { version: 'v1.2', date: '1.09.2026', changes: [
             'Updated How to Play guide.',
@@ -2529,7 +2531,7 @@
             id: 'income_milestones',
             name: 'Income Milestones',
             unit: 'TT/s',
-            tiers: [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2000, 5000, 10000, 25000, 50000, 100000],
+            tiers: [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2000, 5000, 10000, 25000, 50000, 100000, 125000, 150000, 175000, 200000, 250000, 500000, 750000, 1000000, 1500000, 2000000, 3000000, 4000000, 5000000, 7500000, 10000000, 15000000, 25000000, 35000000],
             getValue: () => highestIncomePerSecond
         },
         {
@@ -2543,7 +2545,7 @@
             id: 'businesses_purchased_milestones',
             name: 'Businesses Purchased',
             unit: '',
-            tiers: [1, 3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 67, 73],
+            tiers: [1, 3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 67, 80],
             getValue: () => highestBusinessesOwnedInRun
         },
         {
