@@ -730,6 +730,7 @@
             font-size: 1rem;
             font-weight: 600;
             letter-spacing: 0.5px;
+            cursor: help;
         }
 
         .double-income-badge {
@@ -1463,6 +1464,21 @@
 
         .custom-tooltip-visible {
             opacity: 1;
+        }
+
+        .custom-tooltip-wide {
+            white-space: normal;
+            text-align: left;
+            font-weight: 400;
+            line-height: 1.6;
+            max-width: 260px;
+            padding: 10px 14px;
+        }
+
+        .income-tooltip-divider {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 4px 0;
         }
 
         .modal-overlay {
@@ -2427,7 +2443,8 @@
             'Fixed Collections tooltip type.',
             'Set a consistent number formatting (1.234.567,89).',
             'Updated Credits.',
-            'Business income is now correctly displayed after increase.'
+            'Business income is now correctly displayed after increase.',
+            'Added a tooltip explanation of current TT/s income.'
         ] },
         { version: 'v1.2', date: '1.09.2026', changes: [
             'Updated How to Play guide.',
@@ -2917,19 +2934,20 @@
         return upgrade.tierNames ? upgrade.tierNames[level - 1] : `MK${level}`;
     }
 
-    function getIncomePerSecond() {
+    function getIncomeBreakdown() {
         let tierIncome = upgrades
             .filter(u => u.type === 'tier')
             .reduce((sum, u) => sum + getTierIncomeBonus(u), 0);
 
         const collectionBoostedIds = getCollectionBoostedBusinessIds();
+        const businessBoostMult = getBusinessBoostMultiplier();
         let businessIncome = businesses
             .filter(b => b.owned)
             .reduce((sum, b) => {
                 let contribution = b.price * BUSINESS_INCOME_RATE;
                 if (collectionBoostedIds.has(b.id)) contribution *= (1 + COLLECTION_COMPLETION_BOOST_RATE);
                 return sum + contribution;
-            }, 0) * getBusinessBoostMultiplier();
+            }, 0) * businessBoostMult;
 
         let total = game.baseIncome + tierIncome + businessIncome;
 
@@ -2942,13 +2960,30 @@
         const superPrestigeBonus = 1 + (superPrestigeCount * getSuperPrestigeBonusRate());
         total *= superPrestigeBonus;
 
-        total *= getPrestigeIncomeBoostMultiplier();
+        const incomeBoostMult = getPrestigeIncomeBoostMultiplier();
+        total *= incomeBoostMult;
 
-        if (isDoubleIncomeActive()) {
-            total *= 2;
-        }
+        const doubleActive = isDoubleIncomeActive();
+        if (doubleActive) total *= 2;
 
-        return total;
+        return {
+            baseIncome: game.baseIncome,
+            tierIncome,
+            businessIncome,
+            businessBoostActive: businessBoostMult > 1,
+            levelBonus,
+            prestigeBonus,
+            prestigeCount,
+            superPrestigeBonus,
+            superPrestigeCount,
+            incomeBoostActive: incomeBoostMult > 1,
+            doubleActive,
+            total
+        };
+    }
+
+    function getIncomePerSecond() {
+        return getIncomeBreakdown().total;
     }
 
     function attemptSinglePurchase(upgrade) {
@@ -3235,6 +3270,56 @@
         COLLECTIONS.forEach(cat => container.appendChild(buildCollectionCard(cat)));
     }
 
+    let incomeTooltipVisible = false;
+
+    function buildIncomeBreakdownHTML() {
+        const b = getIncomeBreakdown();
+        const lines = [];
+        lines.push(`Base Income: +${formatDecimal(b.baseIncome, 2)} TT/s`);
+        lines.push(`Weapon/Truck/Trailer: +${formatDecimal(b.tierIncome, 2)} TT/s`);
+        lines.push(`Businesses: +${formatDecimal(b.businessIncome, 2)} TT/s${b.businessBoostActive ? ' (Business Boost)' : ''}`);
+        lines.push('<hr class="income-tooltip-divider">');
+        lines.push(`Level Bonus: +${formatDecimal((b.levelBonus - 1) * 100, 1)}%`);
+        if (b.prestigeCount > 0) lines.push(`Prestige Bonus: +${formatDecimal((b.prestigeBonus - 1) * 100, 0)}%`);
+        if (b.superPrestigeCount > 0) lines.push(`Super Prestige Bonus: +${formatDecimal((b.superPrestigeBonus - 1) * 100, 0)}%`);
+        if (b.incomeBoostActive) lines.push(`Income Boost: +10%`);
+        if (b.doubleActive) lines.push(`Double Income Token: 2x`);
+        lines.push('<hr class="income-tooltip-divider">');
+        lines.push(`<strong>Total: +${formatDecimal(b.total, 2)} TT/s</strong>`);
+        return lines.join('<br>');
+    }
+
+    function initIncomeTooltip() {
+        const target = document.getElementById('income-display');
+        const tooltip = document.getElementById('custom-tooltip');
+        let hideTimeout = null;
+
+        function show() {
+            clearTimeout(hideTimeout);
+            incomeTooltipVisible = true;
+            tooltip.classList.add('custom-tooltip-wide');
+            tooltip.innerHTML = buildIncomeBreakdownHTML();
+            tooltip.classList.add('custom-tooltip-visible');
+            const rect = target.getBoundingClientRect();
+            tooltip.style.left = (rect.left + rect.width / 2) + 'px';
+            tooltip.style.top = (rect.top - 8) + 'px';
+        }
+
+        function hide() {
+            incomeTooltipVisible = false;
+            tooltip.classList.remove('custom-tooltip-visible');
+            tooltip.classList.remove('custom-tooltip-wide');
+        }
+
+        target.addEventListener('mouseover', show);
+        target.addEventListener('mouseout', hide);
+        target.addEventListener('click', () => {
+            show();
+            clearTimeout(hideTimeout);
+            hideTimeout = setTimeout(hide, 4000);
+        });
+    }
+
     function initCustomTooltips() {
         const container = document.getElementById('collections-container');
         const tooltip = document.getElementById('custom-tooltip');
@@ -3404,6 +3489,10 @@
         const income = precomputedIncome !== undefined ? precomputedIncome : getIncomePerSecond();
         document.getElementById('points-display').innerText = game.points.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
         document.getElementById('income-display').innerText = `+${income.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TT/s`;
+
+        if (incomeTooltipVisible) {
+            document.getElementById('custom-tooltip').innerHTML = buildIncomeBreakdownHTML();
+        }
 
         const badge = document.getElementById('double-income-badge');
         if (isDoubleIncomeActive()) {
@@ -3811,6 +3900,7 @@
         initDragging();
         initResizing();
         initCustomTooltips();
+        initIncomeTooltip();
 
         updateTabScrollButtons();
         document.getElementById('tab-nav').addEventListener('scroll', updateTabScrollButtons);
