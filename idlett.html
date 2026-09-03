@@ -2472,7 +2472,8 @@
             'Changed Prestige requirements.',
             '???',
             'Level Token upgrades moved to the Upgrades tab.',
-            'Skills tab removed.'
+            'Skills tab removed.',
+            'Fixed post-tab merge +5 button bug.'
         ] },
         { version: 'v1.2', date: '1.09.2026', changes: [
             'Updated How to Play guide.',
@@ -3663,11 +3664,10 @@
     }
 
     function refreshCardAffordability(container, items) {
-        const buttons = container.querySelectorAll('.upgrade-btn');
-        const bulkButtons = container.querySelectorAll('.upgrade-btn-bulk');
+        const cards = container.children;
         items.forEach((up, i) => {
-            const btn = buttons[i];
-            if (!btn) return;
+            const card = cards[i];
+            if (!card) return;
             const isMaxed = up.maxLevel && up.level >= up.maxLevel;
             if (isMaxed || !isPrerequisiteMet(up)) return;
 
@@ -3675,9 +3675,11 @@
             const currency = up.currency || 'tt';
             const balance = currency === 'levelTokens' ? game.levelTokens : currency === 'prestigePoints' ? prestigePoints : game.points;
             const affordable = balance >= cost;
-            btn.disabled = !affordable;
 
-            const bulkBtn = bulkButtons[i];
+            const btn = card.querySelector('.upgrade-btn');
+            if (btn) btn.disabled = !affordable;
+
+            const bulkBtn = card.querySelector('.upgrade-btn-bulk');
             if (bulkBtn) bulkBtn.disabled = !affordable;
         });
     }
