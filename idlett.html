@@ -1584,7 +1584,7 @@
     <div class="achievement-toast-container" id="achievement-toast-container"></div>
     <div class="game-scroll-area">
     <header>
-        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.3.3-rc.1</span></h1>
+        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.3.4-rc.1</span></h1>
         <p class="subtitle" id="subtitle-text">Welcome, Player. Gotta keep grinding 😽</p>
     </header>
 
@@ -2098,7 +2098,7 @@
             incomeScale: 0.00028,
             unitLabel: 'kg capacity',
             levelRequirements: {
-                1: { id: 'truck_tier', level: 5 },
+                1: { id: 'truck_tier', level: 3 },
                 4: { id: 'truck_tier', level: 8 },
                 8: { id: 'truck_tier', level: 13 },
                 12: { id: 'truck_tier', level: 17 }
@@ -2459,9 +2459,9 @@
     // Format: { version: 'vX.Y.Z', date: 'YYYY-MM-DD', changes: ['Change one.', 'Change two.'] }
     const CHANGELOG = [
         { version: 'v1.3', date: '03.09.2026', changes: [
-            'Fixed incorrect Next Business Goal price display with prestige discount.',
-            'Fixed Collections tooltip type.',
-            'Set a consistent number formatting (1.234.567,89).',
+            'Fixed incorrect Next Business Goal price display with prestige discount (thanks to Famil for bug reports and suggestion).',
+            'Fixed Collections tooltip type (thanks to Famil for bug reports and suggestion).',
+            'Set a consistent number formatting (1.234.567,89) (thanks to Famil for bug reports and suggestion).',
             'Updated Credits.',
             'Business income is now correctly displayed after increase.',
             'Added a tooltip explanation of current TT/s income.',
@@ -2473,7 +2473,11 @@
             '???',
             'Level Token upgrades moved to the Upgrades tab.',
             'Skills tab removed.',
-            'Fixed post-tab merge +5 button bug.'
+            'Fixed post-tab merge +5 button bug.',
+            'Changed MK1 trailer requirement to Blacktop (Tier 3 Truck upgrade).',
+            'Slightly modified some changelog entries to properly credit people.',
+            'Businesses now show base and boosted income.',
+            'Owned business income no longer has "Owned" prefix.'
         ] },
         { version: 'v1.2', date: '1.09.2026', changes: [
             'Updated How to Play guide.',
@@ -2498,8 +2502,8 @@
             'Changed welcoming message.'
         ] },
         { version: 'v1.0', date: '27.08.2026', changes: [
-            '(Hopefully) fixed a rare occurrence of the tab scrolling issue (thanks Cian).',
-            'Arrows are now clickable and switch to the previous or next tab (thanks Cian).',
+            '(Hopefully) fixed a rare occurrence of the tab scrolling issue (thanks Cian for suggestion).',
+            'Arrows are now clickable and switch to the previous or next tab (thanks Cian for suggestion).',
             'Prestige section (and all related content) moved to the Prestige tab.',
             'Fixed a bug preventing secret achievements from being wiped by the Hard Reset function.'
         ] },
@@ -2527,7 +2531,7 @@
             'Changed starting Truck tier, Speedo Express is now purchasable.',
             'Renamed first tab to "Game".',
             'Stats moved to a new tab.',
-            'Added short "How to Play" explanation to the first (main) tab.'
+            'Added short "How to Play" explanation to the first (main) tab (thanks to Cian for suggestion).'
         ] },
         { version: 'v0.3', date: '24.08.2026', changes: [
             'Visual round up fix.',
@@ -3135,16 +3139,19 @@
         businesses.forEach(biz => {
             const price = getBusinessPrice(biz);
             const canAfford = game.points >= price;
-            let bizIncome = biz.price * BUSINESS_INCOME_RATE;
-            if (collectionBoostedIds.has(biz.id)) bizIncome *= (1 + COLLECTION_COMPLETION_BOOST_RATE);
-            bizIncome *= businessBoostMult;
+            const rawIncome = biz.price * BUSINESS_INCOME_RATE;
+            let effectiveIncome = rawIncome;
+            if (collectionBoostedIds.has(biz.id)) effectiveIncome *= (1 + COLLECTION_COMPLETION_BOOST_RATE);
+            effectiveIncome *= businessBoostMult;
+
+            const incomeText = `+${formatTT(rawIncome)} TT/s (+${formatTT(effectiveIncome)} TT/s)`;
 
             const card = document.createElement('div');
             card.className = biz.owned ? 'upgrade-card owned' : 'upgrade-card';
             card.innerHTML = `
                 <div class="upgrade-info">
                     <div class="upgrade-name">${biz.name}</div>
-                    <div class="upgrade-details">${biz.owned ? `Owned - +${formatTT(bizIncome)} TT/s` : `+${formatTT(bizIncome)} TT/s`}</div>
+                    <div class="upgrade-details">${incomeText}</div>
                 </div>
                 <button class="upgrade-btn ${biz.owned ? 'owned-btn' : ''}" ${(biz.owned || !canAfford) ? 'disabled' : ''} onclick="buyBusiness('${biz.id}')">
                     ${biz.owned ? 'Owned' : formatTT(price) + ' TT'}
