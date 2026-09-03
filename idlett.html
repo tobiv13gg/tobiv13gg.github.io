@@ -1443,6 +1443,28 @@
             cursor: not-allowed;
         }
 
+        .custom-tooltip {
+            position: fixed;
+            transform: translate(-50%, -100%);
+            background: var(--panel-bg);
+            border: 1px solid var(--accent-gold);
+            color: var(--text-color);
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 5px 10px;
+            border-radius: 4px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 50;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            transition: opacity 0.12s;
+        }
+
+        .custom-tooltip-visible {
+            opacity: 1;
+        }
+
         .modal-overlay {
             display: none;
             position: fixed;
@@ -1523,7 +1545,7 @@
     <div class="achievement-toast-container" id="achievement-toast-container"></div>
     <div class="game-scroll-area">
     <header>
-        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.2-rc.2</span></h1>
+        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.3-rc.1</span></h1>
         <p class="subtitle" id="subtitle-text">Welcome, Player. Gotta keep grinding 😽</p>
     </header>
 
@@ -1757,13 +1779,23 @@
                 <div class="credit-icon">💡</div>
                 <div class="credit-info">
                     <div class="credit-name">Ciankelleher04</div>
+                    <div class="credit-role">the brainstormer</div>
                     <div class="credit-message">For giving good ideas and feedback.</div>
+                </div>
+            </div>
+            <div class="credit-card">
+                <div class="credit-icon">🐛</div>
+                <div class="credit-info">
+                    <div class="credit-name">Famil</div>
+                    <div class="credit-role">the bug hunter</div>
+                    <div class="credit-message">For hunting down bugs and keeping this game playable.</div>
                 </div>
             </div>
             <div class="credit-card">
                 <div class="credit-icon">🎮</div>
                 <div class="credit-info">
-                    <div class="credit-name">Famil &amp; Drago</div>
+                    <div class="credit-name">Drago</div>
+                    <div class="credit-role">the playtester</div>
                     <div class="credit-message">For testing my game.</div>
                 </div>
             </div>
@@ -1777,6 +1809,8 @@
     </div>
     </div>
 </div>
+
+<div id="custom-tooltip" class="custom-tooltip"></div>
 
 <div id="reset-modal-overlay" class="modal-overlay">
     <div class="modal-box">
@@ -2388,6 +2422,13 @@
     // Add new entries at the TOP of this array (newest first).
     // Format: { version: 'vX.Y.Z', date: 'YYYY-MM-DD', changes: ['Change one.', 'Change two.'] }
     const CHANGELOG = [
+        { version: 'v1.3', date: '03.09.2026', changes: [
+            'Fixed incorrect Next Business Goal price display with prestige discount.',
+            'Fixed Collections tooltip type.',
+            'Set a consistent number formatting (1.234.567,89).',
+            'Updated Credits.',
+            'Business income is now correctly displayed after increase.'
+        ] },
         { version: 'v1.2', date: '1.09.2026', changes: [
             'Updated How to Play guide.',
             '???',
@@ -2965,7 +3006,11 @@
     }
 
     function formatTT(amount) {
-        return Math.floor(amount).toLocaleString('en-US');
+        return Math.floor(amount).toLocaleString('de-DE');
+    }
+
+    function formatDecimal(value, decimals) {
+        return value.toLocaleString('de-DE', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
     }
 
     function getBusinessPrice(business) {
@@ -2990,10 +3035,15 @@
         const container = document.getElementById('businesses-container');
         container.innerHTML = '';
 
+        const collectionBoostedIds = getCollectionBoostedBusinessIds();
+        const businessBoostMult = getBusinessBoostMultiplier();
+
         businesses.forEach(biz => {
             const price = getBusinessPrice(biz);
             const canAfford = game.points >= price;
-            const bizIncome = biz.price * BUSINESS_INCOME_RATE;
+            let bizIncome = biz.price * BUSINESS_INCOME_RATE;
+            if (collectionBoostedIds.has(biz.id)) bizIncome *= (1 + COLLECTION_COMPLETION_BOOST_RATE);
+            bizIncome *= businessBoostMult;
 
             const card = document.createElement('div');
             card.className = biz.owned ? 'upgrade-card owned' : 'upgrade-card';
@@ -3038,14 +3088,14 @@
                 const currentRaw = up.level > 0 ? up.tierValues[up.level - 1] : 0;
                 const nextRaw = !isMaxed ? up.tierValues[up.level] : null;
                 const nextBonus = !isMaxed ? nextRaw * up.incomeScale * skillBoost : null;
-                const rawStatText = (raw) => up.unitLabel ? ` (${raw} ${up.unitLabel})` : '';
+                const rawStatText = (raw) => up.unitLabel ? ` (${formatTT(raw)} ${up.unitLabel})` : '';
 
                 if (up.level === 0) {
-                    detailsText = `${up.description}<br><small style="color:var(--accent-color)">Effect: +${nextBonus.toFixed(2)} TT/s${rawStatText(nextRaw)}</small>`;
+                    detailsText = `${up.description}<br><small style="color:var(--accent-color)">Effect: +${formatDecimal(nextBonus, 2)} TT/s${rawStatText(nextRaw)}</small>`;
                 } else if (isMaxed) {
-                    detailsText = `Current tier: ${tierLabel(up.level)}<br><small style="color:var(--accent-color)">Effect: +${currentBonus.toFixed(2)} TT/s${rawStatText(currentRaw)}</small>`;
+                    detailsText = `Current tier: ${tierLabel(up.level)}<br><small style="color:var(--accent-color)">Effect: +${formatDecimal(currentBonus, 2)} TT/s${rawStatText(currentRaw)}</small>`;
                 } else {
-                    detailsText = `Current tier: ${tierLabel(up.level)} (+${currentBonus.toFixed(2)} TT/s)<br><small style="color:var(--accent-color)">Next: +${nextBonus.toFixed(2)} TT/s${rawStatText(nextRaw)}</small>`;
+                    detailsText = `Current tier: ${tierLabel(up.level)} (+${formatDecimal(currentBonus, 2)} TT/s)<br><small style="color:var(--accent-color)">Next: +${formatDecimal(nextBonus, 2)} TT/s${rawStatText(nextRaw)}</small>`;
                 }
             }
         } else if (up.type === 'consumable_double_income') {
@@ -3061,7 +3111,7 @@
             displayName = `${up.name} (Level ${up.level})`;
             const currentPct = up.level * up.boostPerLevel * 100;
             const nextPct = (up.level + 1) * up.boostPerLevel * 100;
-            detailsText = `${up.description}<br><small style="color:var(--accent-color)">${up.targetLabel} income: +${currentPct.toFixed(1)}% → +${nextPct.toFixed(1)}%</small>`;
+            detailsText = `${up.description}<br><small style="color:var(--accent-color)">${up.targetLabel} income: +${formatDecimal(currentPct, 1)}% → +${formatDecimal(nextPct, 1)}%</small>`;
         } else if (up.type === 'prestige_upgrade') {
             displayName = up.name;
             detailsText = `${up.description}`;
@@ -3074,8 +3124,8 @@
             ? 'MAX'
             : locked
                 ? 'Locked'
-                : currency === 'levelTokens' ? `${cost} Token${cost === 1 ? '' : 's'}`
-                : currency === 'prestigePoints' ? `${cost} Point${cost === 1 ? '' : 's'}`
+                : currency === 'levelTokens' ? `${formatTT(cost)} Token${cost === 1 ? '' : 's'}`
+                : currency === 'prestigePoints' ? `${formatTT(cost)} Point${cost === 1 ? '' : 's'}`
                 : `${formatTT(cost)} TT`;
 
         const bulkButtonHtml = up.type === 'skill_income_boost'
@@ -3164,7 +3214,7 @@
             const biz = businesses.find(b => b.id === id);
             const owned = !!(biz && biz.owned);
             const name = biz ? biz.name : 'Unknown';
-            return `<div class="collection-circle${owned ? ' collection-circle-lit' : ''}" title="${name}"></div>`;
+            return `<div class="collection-circle${owned ? ' collection-circle-lit' : ''}" data-tooltip="${name}"></div>`;
         }).join('');
 
         card.innerHTML = `
@@ -3183,6 +3233,46 @@
         const container = document.getElementById('collections-container');
         container.innerHTML = '';
         COLLECTIONS.forEach(cat => container.appendChild(buildCollectionCard(cat)));
+    }
+
+    function initCustomTooltips() {
+        const container = document.getElementById('collections-container');
+        const tooltip = document.getElementById('custom-tooltip');
+        let hideTimeout = null;
+
+        function showTooltip(target) {
+            const text = target.dataset.tooltip;
+            if (!text) return;
+            clearTimeout(hideTimeout);
+            tooltip.innerText = text;
+            tooltip.classList.add('custom-tooltip-visible');
+            const rect = target.getBoundingClientRect();
+            tooltip.style.left = (rect.left + rect.width / 2) + 'px';
+            tooltip.style.top = (rect.top - 8) + 'px';
+        }
+
+        function hideTooltip() {
+            tooltip.classList.remove('custom-tooltip-visible');
+        }
+
+        container.addEventListener('mouseover', (e) => {
+            const target = e.target.closest('[data-tooltip]');
+            if (target) showTooltip(target);
+        });
+        container.addEventListener('mouseout', (e) => {
+            const target = e.target.closest('[data-tooltip]');
+            if (target) hideTooltip();
+        });
+        container.addEventListener('click', (e) => {
+            const target = e.target.closest('[data-tooltip]');
+            if (target) {
+                showTooltip(target);
+                clearTimeout(hideTimeout);
+                hideTimeout = setTimeout(hideTooltip, 2500);
+            } else {
+                hideTooltip();
+            }
+        });
     }
 
     function toggleChangelogEntry(index) {
@@ -3312,8 +3402,8 @@
         checkForNewAchievementUnlocks();
 
         const income = precomputedIncome !== undefined ? precomputedIncome : getIncomePerSecond();
-        document.getElementById('points-display').innerText = game.points.toFixed(1);
-        document.getElementById('income-display').innerText = `+${income.toFixed(2)} TT/s`;
+        document.getElementById('points-display').innerText = game.points.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+        document.getElementById('income-display').innerText = `+${income.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TT/s`;
 
         const badge = document.getElementById('double-income-badge');
         if (isDoubleIncomeActive()) {
@@ -3357,7 +3447,7 @@
         document.getElementById('stat-collections-completed').innerText = `${getCompletedCollectionsCount()} / ${COLLECTIONS.length}`;
         document.getElementById('stat-collections-completed-best').innerText = highestCollectionsCompletedInRun;
         document.getElementById('stat-next-goal').innerText = cheapestUnowned
-            ? `${cheapestUnowned.name} - ${formatTT(cheapestUnowned.price)} TT`
+            ? `${cheapestUnowned.name} - ${formatTT(getBusinessPrice(cheapestUnowned))} TT`
             : 'All businesses owned!';
 
         const prestigeStatus = getPrestigeStatus();
@@ -3720,6 +3810,7 @@
         updateUI(undefined, true);
         initDragging();
         initResizing();
+        initCustomTooltips();
 
         updateTabScrollButtons();
         document.getElementById('tab-nav').addEventListener('scroll', updateTabScrollButtons);
