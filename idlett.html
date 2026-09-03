@@ -1561,7 +1561,7 @@
     <div class="achievement-toast-container" id="achievement-toast-container"></div>
     <div class="game-scroll-area">
     <header>
-        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.3-rc.1</span></h1>
+        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.3.1-rc.1</span></h1>
         <p class="subtitle" id="subtitle-text">Welcome, Player. Gotta keep grinding 😽</p>
     </header>
 
@@ -2950,6 +2950,7 @@
             }, 0) * businessBoostMult;
 
         let total = game.baseIncome + tierIncome + businessIncome;
+        const beforeBoosts = total;
 
         const levelBonus = 1 + (game.level * LEVEL_INCOME_BONUS_RATE);
         total *= levelBonus;
@@ -2966,11 +2967,14 @@
         const doubleActive = isDoubleIncomeActive();
         if (doubleActive) total *= 2;
 
+        const totalIncreasePercent = beforeBoosts > 0 ? ((total / beforeBoosts) - 1) * 100 : 0;
+
         return {
             baseIncome: game.baseIncome,
             tierIncome,
             businessIncome,
             businessBoostActive: businessBoostMult > 1,
+            beforeBoosts,
             levelBonus,
             prestigeBonus,
             prestigeCount,
@@ -2978,6 +2982,7 @@
             superPrestigeCount,
             incomeBoostActive: incomeBoostMult > 1,
             doubleActive,
+            totalIncreasePercent,
             total
         };
     }
@@ -3278,12 +3283,14 @@
         lines.push(`Base Income: +${formatDecimal(b.baseIncome, 2)} TT/s`);
         lines.push(`Weapon/Truck/Trailer: +${formatDecimal(b.tierIncome, 2)} TT/s`);
         lines.push(`Businesses: +${formatDecimal(b.businessIncome, 2)} TT/s${b.businessBoostActive ? ' (Business Boost)' : ''}`);
+        lines.push(`Total base income (before boosts): +${formatDecimal(b.beforeBoosts, 2)} TT/s`);
         lines.push('<hr class="income-tooltip-divider">');
         lines.push(`Level Bonus: +${formatDecimal((b.levelBonus - 1) * 100, 1)}%`);
         if (b.prestigeCount > 0) lines.push(`Prestige Bonus: +${formatDecimal((b.prestigeBonus - 1) * 100, 0)}%`);
         if (b.superPrestigeCount > 0) lines.push(`Super Prestige Bonus: +${formatDecimal((b.superPrestigeBonus - 1) * 100, 0)}%`);
         if (b.incomeBoostActive) lines.push(`Income Boost: +10%`);
         if (b.doubleActive) lines.push(`Double Income Token: 2x`);
+        lines.push(`Total income increase: +${formatDecimal(b.totalIncreasePercent, 1)}%`);
         lines.push('<hr class="income-tooltip-divider">');
         lines.push(`<strong>Total: +${formatDecimal(b.total, 2)} TT/s</strong>`);
         return lines.join('<br>');
