@@ -117,31 +117,6 @@
             touch-action: none;
         }
 
-        .sound-toggle {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 28px;
-            height: 28px;
-            border: 1px solid var(--border-color);
-            border-radius: 50%;
-            background: rgba(0, 0, 0, 0.3);
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            line-height: 1;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 3;
-            transition: all 0.15s;
-        }
-
-        .sound-toggle:hover {
-            border-color: var(--accent-color);
-            color: var(--accent-color);
-        }
-
         .achievement-toast-container {
             position: absolute;
             bottom: 12px;
@@ -341,6 +316,12 @@
             color: var(--accent-pink);
             border-bottom-color: var(--accent-pink);
             text-shadow: 0 0 10px rgba(255, 46, 146, 0.5);
+        }
+
+        .tab-btn.active[data-tab="settings"] {
+            color: var(--accent-gold);
+            border-bottom-color: var(--accent-gold);
+            text-shadow: 0 0 10px rgba(255, 201, 77, 0.5);
         }
 
         .tab-btn.active[data-tab="reset"] {
@@ -1397,6 +1378,102 @@
             text-shadow: 0 0 10px rgba(185, 103, 255, 0.5);
         }
 
+        .settings-panel {
+            border-radius: 4px;
+            padding: 15px;
+            text-align: left;
+            margin-bottom: 15px;
+            background: rgba(255, 201, 77, 0.08);
+            border: 1px solid var(--accent-gold);
+        }
+
+        .settings-panel:last-child {
+            margin-bottom: 0;
+        }
+
+        .settings-panel-title {
+            font-family: var(--font-display);
+            letter-spacing: 1.5px;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            color: var(--accent-gold);
+            text-shadow: 0 0 10px rgba(255, 201, 77, 0.4);
+        }
+
+        .settings-panel-desc {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+
+        .settings-toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .settings-radio-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .settings-radio-row:hover {
+            color: var(--text-color);
+        }
+
+        .settings-radio-row input[type="radio"] {
+            accent-color: var(--accent-gold);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .settings-volume-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 201, 77, 0.2);
+            outline: none;
+            cursor: pointer;
+        }
+
+        .settings-volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent-gold);
+            box-shadow: 0 0 8px rgba(255, 201, 77, 0.6);
+            cursor: pointer;
+        }
+
+        .settings-volume-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border: none;
+            border-radius: 50%;
+            background: var(--accent-gold);
+            box-shadow: 0 0 8px rgba(255, 201, 77, 0.6);
+            cursor: pointer;
+        }
+
+        .settings-volume-slider:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .settings-volume-slider:disabled::-webkit-slider-thumb {
+            cursor: not-allowed;
+        }
+
         .prestige-checklist {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 3px;
@@ -1580,11 +1657,10 @@
 
 <div class="game-container">
     <div class="resize-handle" id="resize-handle" title="Drag to resize"></div>
-    <button class="sound-toggle" id="sound-toggle-btn" onclick="toggleSound()" title="Toggle sound">🔊</button>
     <div class="achievement-toast-container" id="achievement-toast-container"></div>
     <div class="game-scroll-area">
     <header>
-        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.3.4-rc.1</span></h1>
+        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v1.4</span></h1>
         <p class="subtitle" id="subtitle-text">Welcome, Player. Gotta keep grinding 😽</p>
     </header>
 
@@ -1599,6 +1675,7 @@
             <button class="tab-btn" data-tab="achievements" onclick="switchTab('achievements')">Achievements</button>
             <button class="tab-btn" data-tab="stats" onclick="switchTab('stats')">Stats</button>
             <button class="tab-btn" data-tab="reset" onclick="switchTab('reset')">Reset</button>
+            <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">Settings</button>
             <button class="tab-btn" data-tab="credits" onclick="switchTab('credits')">Credits</button>
             <button class="tab-btn" data-tab="changelog" onclick="switchTab('changelog')">Changelog</button>
         </div>
@@ -1699,7 +1776,7 @@
                 <div id="prestige-check-trailer">❌ Trailer</div>
                 <div id="prestige-check-weapon">❌ Weapon</div>
                 <div id="prestige-check-truck">❌ Truck</div>
-                <div id="prestige-check-biz73">❌ 10 Businesses</div>
+                <div id="prestige-check-business-count">❌ 10 Businesses</div>
             </div>
             <div class="prestige-checklist" id="prestige-max-message" style="display:none;">
                 <div style="color:var(--accent-gold);">You've reached the maximum Prestige level.</div>
@@ -1785,6 +1862,41 @@
             <div class="reset-panel-title">Hard Reset</div>
             <div class="reset-panel-desc">Clears EVERYTHING. No exceptions. All data gone.</div>
             <button class="reset-btn btn-block btn-danger-solid" onclick="requestHardReset()">Hard Reset</button>
+        </div>
+    </div>
+
+    <div class="tab-content" id="tab-settings">
+        <div class="settings-panel">
+            <div class="settings-panel-title">Sound Effects</div>
+            <div class="settings-panel-desc">Play a sound when you unlock an achievement.</div>
+            <div class="settings-toggle-row">
+                <span id="settings-sound-status">Enabled</span>
+                <button class="reset-btn" id="settings-sound-btn" onclick="toggleSound()">Toggle</button>
+            </div>
+            <div class="settings-panel-desc" id="settings-volume-label" style="margin-top:12px;">Notification Volume: 70%</div>
+            <input type="range" id="settings-volume-slider" class="settings-volume-slider" min="0" max="100" value="70"
+                oninput="handleVolumeInput(this.value)" onchange="handleVolumeChange(this.value)">
+        </div>
+
+        <div class="settings-panel">
+            <div class="settings-panel-title">Number Format</div>
+            <div class="settings-panel-desc">Choose how large numbers are displayed throughout the game.</div>
+            <label class="settings-radio-row">
+                <input type="radio" name="number-format" value="dot-comma" id="settings-format-dot-comma" onchange="setNumberFormat('dot-comma')" checked>
+                <span>1.234.567,89</span>
+            </label>
+            <label class="settings-radio-row">
+                <input type="radio" name="number-format" value="comma-dot" id="settings-format-comma-dot" onchange="setNumberFormat('comma-dot')">
+                <span>1,234,567.89</span>
+            </label>
+            <label class="settings-radio-row">
+                <input type="radio" name="number-format" value="space-comma" id="settings-format-space-comma" onchange="setNumberFormat('space-comma')">
+                <span>1 234 567,89</span>
+            </label>
+            <label class="settings-radio-row">
+                <input type="radio" name="number-format" value="space-dot" id="settings-format-space-dot" onchange="setNumberFormat('space-dot')">
+                <span>1 234 567.89</span>
+            </label>
         </div>
     </div>
 
@@ -2090,13 +2202,12 @@
             baseName: 'Upgrade your trailer',
             description: 'Upgrade your trailer to the next tier for more cargo capacity, which boosts your passive income',
             baseCost: 55,
-            costMultiplier: 1.6,
+            costMultiplier: 2.5,
             level: 0,
             maxLevel: 14,
             type: 'tier',
-            tierValues: [400, 475, 600, 775, 1000, 1500, 2200, 2500, 2750, 3000, 3500, 5000, 8500, 9000],
-            incomeScale: 0.00028,
-            unitLabel: 'kg capacity',
+            tierValues: [0.112, 0.163, 0.238, 0.347, 0.505, 0.737, 1.074, 1.565, 2.281, 3.324, 4.845, 7.061, 10.292, 15],
+            incomeScale: 1,
             levelRequirements: {
                 1: { id: 'truck_tier', level: 3 },
                 4: { id: 'truck_tier', level: 8 },
@@ -2239,6 +2350,8 @@
     let memoryFallback = {};
     const SAVE_KEY = 'idle_tt_save';
     const WINDOW_STATE_KEY = 'idle_tt_window_state';
+    const SOUND_SETTINGS_KEY = 'idle_tt_sound_settings';
+    const NUMBER_FORMAT_KEY = 'idle_tt_number_format';
 
     async function storageSet(key, value) {
         if (window.storage && typeof window.storage.set === 'function') {
@@ -2458,7 +2571,17 @@
     // Add new entries at the TOP of this array (newest first).
     // Format: { version: 'vX.Y.Z', date: 'YYYY-MM-DD', changes: ['Change one.', 'Change two.'] }
     const CHANGELOG = [
-        { version: 'v1.3', date: '03.09.2026', changes: [
+        { version: 'v1.4', date: '7.09.2026', changes: [
+            'Changed cost and income of Trailers.',
+            'Added a new Settings tab (thanks to Cian for the suggestion).',
+            'Implemented a way to change the number formatting style (thanks to Cian for the suggestion).',
+            'Moved the mute button to the Settings tab.',
+            'Added a notification volume slider.',
+            'Changed 35M income tier to 50M.',
+            'Expanded Income Milestones achievement with 7 new tiers (up to 250M).',
+            'Minor fixes.'
+        ] },
+        { version: 'v1.3', date: '3.09.2026', changes: [
             'Fixed incorrect Next Business Goal price display with prestige discount (thanks to Famil for bug reports and suggestion).',
             'Fixed Collections tooltip type (thanks to Famil for bug reports and suggestion).',
             'Set a consistent number formatting (1.234.567,89) (thanks to Famil for bug reports and suggestion).',
@@ -2562,7 +2685,7 @@
             id: 'income_milestones',
             name: 'Income Milestones',
             unit: 'TT/s',
-            tiers: [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2000, 5000, 10000, 25000, 50000, 100000, 125000, 150000, 175000, 200000, 250000, 500000, 750000, 1000000, 1500000, 2000000, 3000000, 4000000, 5000000, 7500000, 10000000, 15000000, 25000000, 35000000],
+            tiers: [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2000, 5000, 10000, 25000, 50000, 100000, 125000, 150000, 175000, 200000, 250000, 500000, 750000, 1000000, 1500000, 2000000, 3000000, 4000000, 5000000, 7500000, 10000000, 15000000, 25000000, 50000000, 75000000, 100000000, 125000000, 150000000, 175000000, 200000000, 250000000],
             getValue: () => highestIncomePerSecond
         },
         {
@@ -2614,7 +2737,7 @@
             type: 'secret',
             slots: 4,
             unlocked: [false, false, false, false],
-            slotNames: ['Bullseye', 'Ah shit, here we go again...', "I don't know what I'm doing", 'Game Over'],
+            slotNames: ['Not even funny anymore...', 'Ah shit, here we go again...', "I don't know what I'm doing", 'Game Over'],
             slotConditions: ['Reach exactly 67.00 TT/s.', 'Complete your first Super Prestige.', 'Reach Prestige 5 without completing a single Collection.', 'From Super Prestige 10 onward, reach Prestige 7 and own everything with every other achievement maxed.']
         }
     ];
@@ -2666,6 +2789,8 @@
     }
 
     let soundEnabled = true;
+    let soundVolume = 70;
+    let numberFormatId = 'dot-comma';
     let audioContext = null;
     let lastKnownTierCounts = {};
     let lastKnownSecretStates = {};
@@ -2683,6 +2808,7 @@
 
         const notes = [523.25, 659.25, 783.99, 1046.5];
         const startTime = audioContext.currentTime;
+        const peakGain = 0.18 * (soundVolume / 100);
 
         notes.forEach((freq, i) => {
             const osc = audioContext.createOscillator();
@@ -2691,7 +2817,7 @@
             osc.frequency.value = freq;
             const noteStart = startTime + i * 0.09;
             gain.gain.setValueAtTime(0, noteStart);
-            gain.gain.linearRampToValueAtTime(0.18, noteStart + 0.02);
+            gain.gain.linearRampToValueAtTime(peakGain, noteStart + 0.02);
             gain.gain.exponentialRampToValueAtTime(0.001, noteStart + 0.35);
             osc.connect(gain);
             gain.connect(audioContext.destination);
@@ -2763,7 +2889,75 @@
 
     function toggleSound() {
         soundEnabled = !soundEnabled;
-        document.getElementById('sound-toggle-btn').innerText = soundEnabled ? '🔊' : '🔇';
+        applySoundUI();
+        saveSoundSettings();
+    }
+
+    function applySoundUI() {
+        const statusEl = document.getElementById('settings-sound-status');
+        const sliderEl = document.getElementById('settings-volume-slider');
+        if (statusEl) statusEl.innerText = soundEnabled ? 'Enabled' : 'Disabled';
+        if (sliderEl) sliderEl.disabled = !soundEnabled;
+    }
+
+    function handleVolumeInput(value) {
+        soundVolume = parseInt(value, 10);
+        const labelEl = document.getElementById('settings-volume-label');
+        if (labelEl) labelEl.innerText = `Notification Volume: ${soundVolume}%`;
+    }
+
+    function handleVolumeChange(value) {
+        handleVolumeInput(value);
+        saveSoundSettings();
+        playAchievementSound();
+    }
+
+    async function saveSoundSettings() {
+        await storageSet(SOUND_SETTINGS_KEY, JSON.stringify({ soundEnabled, soundVolume }));
+    }
+
+    function setNumberFormat(formatId) {
+        if (!NUMBER_FORMATS[formatId]) return;
+        numberFormatId = formatId;
+        saveNumberFormat();
+        updateUI(undefined, true);
+    }
+
+    async function saveNumberFormat() {
+        await storageSet(NUMBER_FORMAT_KEY, numberFormatId);
+    }
+
+    async function restoreNumberFormat() {
+        const saved = await storageGet(NUMBER_FORMAT_KEY);
+        if (!NUMBER_FORMATS[saved]) return;
+        numberFormatId = saved;
+
+        const radio = document.getElementById('settings-format-' + saved);
+        if (radio) radio.checked = true;
+    }
+
+    async function restoreSoundSettings() {
+        const saved = await storageGet(SOUND_SETTINGS_KEY);
+        if (!saved) return;
+
+        let state;
+        try {
+            state = JSON.parse(saved);
+        } catch (e) {
+            return;
+        }
+        if (typeof state !== 'object' || state === null) return;
+
+        if (typeof state.soundEnabled === 'boolean') soundEnabled = state.soundEnabled;
+        if (typeof state.soundVolume === 'number' && state.soundVolume >= 0 && state.soundVolume <= 100) {
+            soundVolume = state.soundVolume;
+        }
+
+        const sliderEl = document.getElementById('settings-volume-slider');
+        if (sliderEl) sliderEl.value = soundVolume;
+        const labelEl = document.getElementById('settings-volume-label');
+        if (labelEl) labelEl.innerText = `Notification Volume: ${soundVolume}%`;
+        applySoundUI();
     }
 
     function getPrestigeStatus() {
@@ -2788,17 +2982,17 @@
         const trailerMet = trailerUpgrade.level >= req.trailerTier;
         const weaponMet = weaponUpgrade.level >= weaponRequiredLevel;
         const truckMet = truckUpgrade.level >= truckRequiredLevel;
-        const biz73Met = ownedBusinessCount >= requiredBusinessCount;
+        const businessCountMet = ownedBusinessCount >= requiredBusinessCount;
 
         return {
             atMaxPrestige: false,
-            levelMet, trailerMet, weaponMet, truckMet, biz73Met,
+            levelMet, trailerMet, weaponMet, truckMet, businessCountMet,
             requiredCharLevel,
             requiredBusinessCount,
             trailerTier: req.trailerTier,
             weaponTierName: req.weaponTierName,
             truckTierName: req.truckTierName,
-            canPrestige: levelMet && trailerMet && weaponMet && truckMet && biz73Met
+            canPrestige: levelMet && trailerMet && weaponMet && truckMet && businessCountMet
         };
     }
 
@@ -3096,12 +3290,27 @@
         await saveGame();
     }
 
+    const NUMBER_FORMATS = {
+        'dot-comma': { thousands: '.', decimal: ',' },
+        'comma-dot': { thousands: ',', decimal: '.' },
+        'space-comma': { thousands: ' ', decimal: ',' },
+        'space-dot': { thousands: ' ', decimal: '.' }
+    };
+
+    function formatNumberCustom(value, decimals) {
+        const format = NUMBER_FORMATS[numberFormatId] || NUMBER_FORMATS['dot-comma'];
+        const neutral = value.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+        const parts = neutral.split('.');
+        const intPart = parts[0].split(',').join(format.thousands);
+        return parts.length > 1 ? intPart + format.decimal + parts[1] : intPart;
+    }
+
     function formatTT(amount) {
-        return Math.floor(amount).toLocaleString('de-DE');
+        return formatNumberCustom(Math.floor(amount), 0);
     }
 
     function formatDecimal(value, decimals) {
-        return value.toLocaleString('de-DE', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+        return formatNumberCustom(value, decimals);
     }
 
     function getBusinessPrice(business) {
@@ -3186,17 +3395,14 @@
             } else {
                 const skillBoost = getSkillBoostMultiplier(up.id);
                 const currentBonus = getTierIncomeBonus(up);
-                const currentRaw = up.level > 0 ? up.tierValues[up.level - 1] : 0;
-                const nextRaw = !isMaxed ? up.tierValues[up.level] : null;
-                const nextBonus = !isMaxed ? nextRaw * up.incomeScale * skillBoost : null;
-                const rawStatText = (raw) => up.unitLabel ? ` (${formatTT(raw)} ${up.unitLabel})` : '';
+                const nextBonus = !isMaxed ? up.tierValues[up.level] * up.incomeScale * skillBoost : null;
 
                 if (up.level === 0) {
-                    detailsText = `${up.description}<br><small style="color:var(--accent-color)">Effect: +${formatDecimal(nextBonus, 2)} TT/s${rawStatText(nextRaw)}</small>`;
+                    detailsText = `${up.description}<br><small style="color:var(--accent-color)">Effect: +${formatDecimal(nextBonus, 2)} TT/s</small>`;
                 } else if (isMaxed) {
-                    detailsText = `Current tier: ${tierLabel(up.level)}<br><small style="color:var(--accent-color)">Effect: +${formatDecimal(currentBonus, 2)} TT/s${rawStatText(currentRaw)}</small>`;
+                    detailsText = `Current tier: ${tierLabel(up.level)}<br><small style="color:var(--accent-color)">Effect: +${formatDecimal(currentBonus, 2)} TT/s</small>`;
                 } else {
-                    detailsText = `Current tier: ${tierLabel(up.level)} (+${formatDecimal(currentBonus, 2)} TT/s)<br><small style="color:var(--accent-color)">Next: +${formatDecimal(nextBonus, 2)} TT/s${rawStatText(nextRaw)}</small>`;
+                    detailsText = `Current tier: ${tierLabel(up.level)} (+${formatDecimal(currentBonus, 2)} TT/s)<br><small style="color:var(--accent-color)">Next: +${formatDecimal(nextBonus, 2)} TT/s</small>`;
                 }
             }
         } else if (up.type === 'consumable_double_income') {
@@ -3554,8 +3760,8 @@
         checkForNewAchievementUnlocks();
 
         const income = precomputedIncome !== undefined ? precomputedIncome : getIncomePerSecond();
-        document.getElementById('points-display').innerText = game.points.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-        document.getElementById('income-display').innerText = `+${income.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TT/s`;
+        document.getElementById('points-display').innerText = formatDecimal(game.points, 1);
+        document.getElementById('income-display').innerText = `+${formatDecimal(income, 2)} TT/s`;
 
         if (incomeTooltipVisible) {
             document.getElementById('custom-tooltip').innerHTML = buildIncomeBreakdownHTML();
@@ -3617,7 +3823,7 @@
         document.getElementById('prestige-max-message').style.display = atMaxPrestige ? '' : 'none';
 
         if (!atMaxPrestige) {
-            const { levelMet, trailerMet, weaponMet, truckMet, biz73Met, requiredCharLevel, requiredBusinessCount, trailerTier, weaponTierName, truckTierName } = prestigeStatus;
+            const { levelMet, trailerMet, weaponMet, truckMet, businessCountMet, requiredCharLevel, requiredBusinessCount, trailerTier, weaponTierName, truckTierName } = prestigeStatus;
 
             document.getElementById('prestige-check-level').style.color = levelMet ? 'var(--accent-gold)' : 'var(--text-muted)';
             document.getElementById('prestige-check-level').innerText = (levelMet ? '✓' : '❌') + ` Level ${requiredCharLevel}`;
@@ -3627,8 +3833,8 @@
             document.getElementById('prestige-check-weapon').innerText = (weaponMet ? '✓' : '❌') + ` ${weaponTierName} Weapon`;
             document.getElementById('prestige-check-truck').style.color = truckMet ? 'var(--accent-gold)' : 'var(--text-muted)';
             document.getElementById('prestige-check-truck').innerText = (truckMet ? '✓' : '❌') + ` ${truckTierName} Truck`;
-            document.getElementById('prestige-check-biz73').style.color = biz73Met ? 'var(--accent-gold)' : 'var(--text-muted)';
-            document.getElementById('prestige-check-biz73').innerText = (biz73Met ? '✓' : '❌') + ` ${requiredBusinessCount} Businesses`;
+            document.getElementById('prestige-check-business-count').style.color = businessCountMet ? 'var(--accent-gold)' : 'var(--text-muted)';
+            document.getElementById('prestige-check-business-count').innerText = (businessCountMet ? '✓' : '❌') + ` ${requiredBusinessCount} Businesses`;
         }
 
         const prestigeBtn = document.getElementById('prestige-btn');
@@ -3959,6 +4165,8 @@
     (async function init() {
         await loadGame();
         await restoreWindowState();
+        await restoreSoundSettings();
+        await restoreNumberFormat();
         updateUI(undefined, true);
         initDragging();
         initResizing();
@@ -4001,8 +4209,10 @@
     window.requestPrestige = requestPrestige;
     window.requestSuperPrestige = requestSuperPrestige;
     window.toggleSound = toggleSound;
+    window.handleVolumeInput = handleVolumeInput;
+    window.handleVolumeChange = handleVolumeChange;
+    window.setNumberFormat = setNumberFormat;
     window.toggleChangelogEntry = toggleChangelogEntry;
-    window.playAchievementSound = playAchievementSound;
     window.confirmHardReset = confirmHardReset;
     window.confirmPrestige = confirmPrestige;
     window.cancelReset = cancelReset;
