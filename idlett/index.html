@@ -135,6 +135,16 @@
             box-sizing: border-box;
         }
 
+        body.is-dragging,
+        body.is-dragging * {
+            user-select: none !important;
+            -webkit-user-select: none !important;
+        }
+
+        .game-container:focus {
+            outline: none;
+        }
+
         .game-container {
             position: fixed;
             top: 50%;
@@ -157,13 +167,26 @@
             box-sizing: border-box;
             flex: 1;
             min-height: 0;
-            padding: 25px;
+            padding: 0 25px 25px;
             overflow-y: auto;
             background-image:
                 repeating-linear-gradient(135deg, rgba(151, 251, 0, 0.02) 0px, rgba(151, 251, 0, 0.02) 1px, transparent 1px, transparent 26px),
                 repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.015) 0px, rgba(255, 255, 255, 0.015) 1px, transparent 1px, transparent 26px);
             scrollbar-width: thin;
             scrollbar-color: var(--accent-color) transparent;
+        }
+
+        .app-sticky-top {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            padding-top: 25px;
+            padding-bottom: 20px;
+            background-color: var(--panel-bg);
+        }
+
+        .app-sticky-top .tab-nav-wrapper {
+            margin-bottom: 0;
         }
 
         .game-scroll-area::-webkit-scrollbar {
@@ -1966,6 +1989,18 @@
             width: 100%;
         }
 
+        .next-goal-btn-row {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .next-goal-btn-row .next-goal-buy-btn {
+            flex: 1;
+            margin-top: 0;
+        }
+
         .next-goal-buy-btn {
             margin-top: 10px;
             padding: 8px 16px;
@@ -2130,7 +2165,7 @@
 </head>
 <body>
 
-<div class="game-container">
+<div class="game-container" id="game-container" tabindex="-1">
     <div class="resize-handle" id="resize-handle" title="Drag to resize"></div>
     <button class="minimize-btn" id="minimize-btn" title="Minimize" onclick="toggleMinimized()">&minus;</button>
     <button class="transparency-btn" id="transparency-btn" title="Toggle Transparency" onclick="toggleTransparency()">&#9788;</button>
@@ -2140,8 +2175,9 @@
     </div>
     <div class="achievement-toast-container" id="achievement-toast-container"></div>
     <div class="game-scroll-area">
+    <div class="app-sticky-top">
     <header>
-        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v2.0</span></h1>
+        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v2.1</span></h1>
         <p class="subtitle" id="subtitle-text">Welcome, Player. Gotta keep grinding 😽</p>
     </header>
 
@@ -2162,6 +2198,7 @@
             <button class="tab-btn" data-tab="changelog" onclick="switchTab('changelog')">Changelog</button>
         </div>
         <button class="tab-scroll-btn tab-scroll-right" id="tab-scroll-right" onclick="scrollTabs(1)">›</button>
+    </div>
     </div>
 
     <div class="tab-content active" id="tab-main">
@@ -2198,7 +2235,10 @@
             <div class="stat-box wide">
                 <div class="stat-value-text" id="stat-next-goal">-</div>
                 <div class="stat-label">Next Business Goal</div>
-                <button class="btn-block next-goal-buy-btn" id="next-goal-buy-btn" style="display:none;" onclick="buyNextGoalBusiness()">Buy Now</button>
+                <div class="next-goal-btn-row" id="next-goal-btn-row" style="display:none;">
+                    <button class="next-goal-buy-btn" id="next-goal-buy-btn" onclick="buyNextGoalBusiness()">Buy Now</button>
+                    <button class="next-goal-buy-btn" id="next-goal-buy-all-btn" style="display:none;" onclick="buyAllAffordableBusinesses()">Buy All</button>
+                </div>
             </div>
         </div>
 
@@ -2209,7 +2249,7 @@
                 <li>your main goal each run is to collect every business — keep an eye out for the cheapest one you don't own yet</li>
                 <li>spend TT on Weapons, Trucks and Trailers too — they all add a bit to your income</li>
                 <li>Trailer needs a Truck first, and better Trailers need better Trucks</li>
-                <li>upgrade Skills as you level up — they quietly boost your gear over time</li>
+                <li>buy upgrades and tier up your jobs - they all influence your total income</li>
                 <li>check the Collections tab — matching sets of businesses reward you for finishing them</li>
                 <li>the Achievements tab tracks your milestones... and maybe a few secrets as well 👀</li>
                 <li>don't be afraid to Prestige — it resets your run but grants a permanent boost, like a New Game+</li>
@@ -3205,6 +3245,7 @@
 
     let businesses = [
         { id: 'biz_wenger_institute', name: 'Wenger Institute', price: 15000, owned: false },
+        { id: 'biz_smoke_on_the_water', name: 'Smoke on the Water', price: 30000, owned: false },
         { id: 'biz_pitchers', name: 'Pitchers', price: 50000, owned: false },
         { id: 'biz_tequilalala', name: 'Tequi-la-la', price: 75000, owned: false },
         { id: 'biz_hen_house', name: 'The Hen House', price: 100000, owned: false },
@@ -3218,7 +3259,6 @@
         { id: 'biz_hornys_burgers', name: "Horny's Burgers", price: 300000, owned: false },
         { id: 'biz_hookies', name: 'Hookies', price: 300000, owned: false },
         { id: 'biz_caseys_diner', name: "Casey's Diner", price: 350000, owned: false },
-        { id: 'biz_smoke_on_the_water', name: 'Smoke on the Water', price: 30000, owned: false },
         { id: 'biz_downtown_cab_co', name: 'Downtown Cab Co.', price: 400000, owned: false },
         { id: 'biz_mckenzie_field_hangar', name: 'McKenzie Field Hangar', price: 450000, owned: false },
         { id: 'biz_you_tool_sandy_shores', name: 'You Tool Sandy Shores', price: 500000, owned: false },
@@ -3540,6 +3580,12 @@
     // Add new entries at the TOP of this array (newest first).
     // Format: { version: 'vX.Y.Z', date: 'YYYY-MM-DD', changes: ['Change one.', 'Change two.'] }
     const CHANGELOG = [
+        { version: 'v2.1', date: '9.10.2026', changes: [
+            'Added a \'Buy All\' button for Next Business goal (Thanks to Stworek for suggestion).',
+            'Fixed a minor business sorting mistake (Thanks to Cyberskilzz for report).',
+            'App can now be closed with Escape key (thanks to Whimsey and Kian for suggestion and Scorpio for help).',
+            'Header and Tabs are now always visible, regardless of window size.'
+        ] },
         { version: 'v2.0', date: '1.10.2026', changes: [
             'Changed Level to Player Level.',
             'Settings tab color changed to orange.',
@@ -3736,10 +3782,10 @@
             id: 'secret_mystery_1',
             name: '???',
             type: 'secret',
-            slots: 4,
-            unlocked: [false, false, false, false],
-            slotNames: ['Not even funny anymore...', 'Ah shit, here we go again...', "I don't know what I'm doing", 'Game Over'],
-            slotConditions: ['Reach exactly 67.00 TT/s.', 'Complete your first Super Prestige.', 'Reach Prestige 5 without completing a single Collection.', 'From Super Prestige 10 onward, reach Prestige 7 and own everything with every other achievement maxed.']
+            slots: 5,
+            unlocked: [false, false, false, false, false],
+            slotNames: ['Not even funny anymore...', 'Ah shit, here we go again...', "I don't know what I'm doing", 'Game Over', 'Was it worth it?'],
+            slotConditions: ['Reach exactly 67.00 TT/s.', 'Complete your first Super Prestige.', 'Reach Prestige 5 without completing a single Collection.', 'From Super Prestige 10 onward, reach Prestige 7 and own everything with every other achievement maxed.', 'Purchase 100,000 Double Income Tokens in a single run.']
         }
     ];
 
@@ -4356,6 +4402,10 @@
             if (upgrade.type === 'consumable_double_income') {
                 const extendFrom = Math.max(game.playTimeSeconds, game.doubleIncomeExpiryPlayTime);
                 game.doubleIncomeExpiryPlayTime = extendFrom + DOUBLE_INCOME_DURATION_SECONDS;
+                if (upgrade.level >= 100000) {
+                    const entry = ACHIEVEMENTS.find(a => a.id === 'secret_mystery_1');
+                    if (entry) entry.unlocked[4] = true;
+                }
             }
         }
 
@@ -4458,6 +4508,25 @@
             .filter(b => !b.owned)
             .sort((a, b) => a.price - b.price)[0];
         if (cheapestUnowned) await buyBusiness(cheapestUnowned.id);
+    }
+
+    async function buyAllAffordableBusinesses() {
+        let boughtAny = false;
+        const sorted = businesses
+            .filter(b => !b.owned)
+            .sort((a, b) => a.price - b.price);
+        for (const business of sorted) {
+            const price = getBusinessPrice(business);
+            if (game.points < price) break;
+            game.points -= price;
+            business.owned = true;
+            addExp(price * EXP_PURCHASE_BONUS_RATE);
+            boughtAny = true;
+        }
+        if (boughtAny) {
+            updateUI(undefined, true);
+            await saveGame();
+        }
     }
 
     function renderBusinesses() {
@@ -5076,9 +5145,19 @@
             ? `${cheapestUnowned.name} - ${formatTT(getBusinessPrice(cheapestUnowned))} TT`
             : 'All businesses owned!';
 
-        const nextGoalBuyBtn = document.getElementById('next-goal-buy-btn');
+        const nextGoalBtnRow = document.getElementById('next-goal-btn-row');
+        const nextGoalBuyAllBtn = document.getElementById('next-goal-buy-all-btn');
         const canAffordNextGoal = cheapestUnowned && game.points >= getBusinessPrice(cheapestUnowned);
-        nextGoalBuyBtn.style.display = canAffordNextGoal ? 'block' : 'none';
+        let canAffordMultiple = false;
+        if (canAffordNextGoal) {
+            const unownedPrices = businesses
+                .filter(b => !b.owned)
+                .map(b => getBusinessPrice(b))
+                .sort((a, b) => a - b);
+            canAffordMultiple = unownedPrices.length > 1 && game.points >= unownedPrices[0] + unownedPrices[1];
+        }
+        nextGoalBtnRow.style.display = canAffordNextGoal ? 'flex' : 'none';
+        nextGoalBuyAllBtn.style.display = canAffordMultiple ? '' : 'none';
 
         const prestigeStatus = getPrestigeStatus();
         const { atMaxPrestige, canPrestige } = prestigeStatus;
@@ -5358,7 +5437,9 @@
             startLeft = rect.left;
             startTop = rect.top;
 
-            e.preventDefault();
+            // Don't cancel a mouse press: that stops the page from receiving keyboard focus (Esc/close).
+            document.body.classList.add('is-dragging');
+            if (e.type !== 'mousedown') e.preventDefault();
         }
 
         function moveDrag(e) {
@@ -5380,6 +5461,7 @@
         function endDrag() {
             if (!isDragging) return;
             isDragging = false;
+            document.body.classList.remove('is-dragging');
             handle.classList.remove('dragging');
             minimizedHandle.classList.remove('dragging');
             saveWindowState();
@@ -5429,7 +5511,8 @@
             startWidth = rect.width;
             startHeight = rect.height;
 
-            e.preventDefault();
+            document.body.classList.add('is-dragging');
+            if (e.type !== 'mousedown') e.preventDefault();
             e.stopPropagation();
         }
 
@@ -5461,6 +5544,7 @@
         function endResize() {
             if (!isResizing) return;
             isResizing = false;
+            document.body.classList.remove('is-dragging');
             handle.classList.remove('resizing');
             saveWindowState();
         }
@@ -5519,6 +5603,74 @@
 
     window.addEventListener('beforeunload', saveGame);
 
+    // Dragging/resizing calls preventDefault() on mousedown, which stops the page from
+    // receiving keyboard focus - so Esc never reached us and the game just pinned the app.
+    // Grab focus explicitly on every press (capture phase, before any handler can block it).
+    function claimKeyboardFocus(e) {
+        const tag = e.target && e.target.tagName;
+        if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+        window.focus();
+        const gameContainer = document.getElementById('game-container');
+        if (gameContainer) gameContainer.focus({ preventScroll: true });
+    }
+    window.addEventListener('mousedown', claimKeyboardFocus, true);
+    window.addEventListener('mouseup', claimKeyboardFocus, true);
+    window.addEventListener('touchstart', claimKeyboardFocus, { capture: true, passive: true });
+
+    // The game tells us when the app becomes interactive (F1). The page does NOT get keyboard
+    // focus automatically at that point, so Esc would go to the game (pin) until the first click.
+    // Claim focus as soon as the game reports focused=true (never when it reports false, so we
+    // don't steal keyboard input from the game while the app is pinned).
+    window.addEventListener('message', (e) => {
+        const d = e.data && e.data.data;
+        if (!d || d.focused !== true) return;
+        claimKeyboardFocus({ target: document.body });
+        setTimeout(() => claimKeyboardFocus({ target: document.body }), 50);
+    });
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape' || e.repeat) return;
+        saveGame();
+        window.parent.postMessage({ type: 'close' }, '*');
+    });
+
+    // Debug overlay - only active when the app URL ends with ?debug=1 (no effect for normal players).
+    (function initDebugPanel() {
+        if (!new URLSearchParams(window.location.search).has('debug')) return;
+
+        const panel = document.createElement('div');
+        panel.style.cssText = 'position:fixed;left:0;bottom:0;z-index:99999;max-width:100%;box-sizing:border-box;'
+            + 'padding:4px 6px;background:rgba(0,0,0,0.9);color:#97fb00;font:10px/1.3 monospace;'
+            + 'white-space:pre-wrap;pointer-events:none;';
+        document.body.appendChild(panel);
+
+        const lines = [];
+        const render = () => {
+            const active = document.activeElement ? document.activeElement.tagName : '-';
+            panel.textContent = `hasFocus=${document.hasFocus()} active=${active} visible=${document.visibilityState}\n` + lines.join('\n');
+        };
+        const log = (text) => {
+            lines.push(`${(performance.now() / 1000).toFixed(1)}s ${text}`);
+            if (lines.length > 9) lines.shift();
+            render();
+        };
+
+        window.addEventListener('focus', () => log('window FOCUS'));
+        window.addEventListener('blur', () => log('window BLUR'));
+        document.addEventListener('visibilitychange', () => log('visibility ' + document.visibilityState));
+        window.addEventListener('mousedown', (e) => log('mousedown on ' + (e.target.tagName || '?')), true);
+        window.addEventListener('mouseup', () => log('mouseup'), true);
+        window.addEventListener('keydown', (e) => log('keydown ' + e.key), true);
+        window.addEventListener('keyup', (e) => log('keyup ' + e.key), true);
+        window.addEventListener('message', (e) => {
+            const d = e.data && e.data.data;
+            if (!d) return;
+            if (d.focused !== undefined) log('game focused=' + d.focused);
+            if (d.pinned !== undefined) log('game pinned=' + d.pinned);
+        });
+        render();
+    })();
+
     window.switchTab = switchTab;
     window.scrollTabs = scrollTabs;
     window.requestHardReset = requestHardReset;
@@ -5539,6 +5691,7 @@
     window.buyUpgradeMultiple = buyUpgradeMultiple;
     window.buyBusiness = buyBusiness;
     window.buyNextGoalBusiness = buyNextGoalBusiness;
+    window.buyAllAffordableBusinesses = buyAllAffordableBusinesses;
 })();
 </script>
 
