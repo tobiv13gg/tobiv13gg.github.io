@@ -2363,6 +2363,10 @@
                 <div class="stat-label">Collections Completed (Current Run)</div>
             </div>
             <div class="stat-box wide">
+                <div class="stat-value" id="stat-double-income-tokens-run">0</div>
+                <div class="stat-label">Double Income Tokens Purchased (Current Run)</div>
+            </div>
+            <div class="stat-box wide">
                 <div class="stat-value" id="stat-achievements-unlocked">0</div>
                 <div class="stat-label">Achievements Unlocked</div>
             </div>
@@ -2389,6 +2393,10 @@
             <div class="stat-box wide">
                 <div class="stat-value" id="stat-collections-completed-best">0</div>
                 <div class="stat-label">Collections Completed (All-Time)</div>
+            </div>
+            <div class="stat-box wide">
+                <div class="stat-value" id="stat-double-income-tokens-all-time">0</div>
+                <div class="stat-label">Double Income Tokens Purchased (All-Time)</div>
             </div>
             <div class="stat-box wide" id="super-prestige-stat-box" style="display:none;">
                 <div class="stat-value" id="stat-super-prestige-count">0</div>
@@ -2668,6 +2676,7 @@
     let highestTotalEarnedInRun = 0;
     let totalTimePlayedAllTime = 0;
     let totalPrestigesPerformed = 0;
+    let totalDoubleIncomeTokensPurchased = 0;
     let highestBusinessesOwnedInRun = 0;
     let highestCollectionsCompletedInRun = 0;
     let highestLegendarySevenOwnedInRun = 0;
@@ -3414,6 +3423,7 @@
             lifetimeEarnings: lifetimeEarnings,
             totalTimePlayedAllTime: totalTimePlayedAllTime,
             totalPrestigesPerformed: totalPrestigesPerformed,
+            totalDoubleIncomeTokensPurchased: totalDoubleIncomeTokensPurchased,
             highestIncomePerSecond: highestIncomePerSecond,
             highestTotalEarnedInRun: highestTotalEarnedInRun,
             highestBusinessesOwnedInRun: highestBusinessesOwnedInRun,
@@ -3473,6 +3483,7 @@
             lifetimeEarnings = sanitizeNumber(parsedData.lifetimeEarnings, 0);
             totalTimePlayedAllTime = sanitizeNumber(parsedData.totalTimePlayedAllTime, 0, 0);
             totalPrestigesPerformed = sanitizeNumber(parsedData.totalPrestigesPerformed, 0, 0);
+            totalDoubleIncomeTokensPurchased = Math.floor(sanitizeNumber(parsedData.totalDoubleIncomeTokensPurchased, 0, 0));
             highestIncomePerSecond = sanitizeNumber(parsedData.highestIncomePerSecond, 0, 0);
             highestTotalEarnedInRun = sanitizeNumber(parsedData.highestTotalEarnedInRun, 0, 0);
             highestBusinessesOwnedInRun = sanitizeNumber(parsedData.highestBusinessesOwnedInRun, 0, 0);
@@ -3507,6 +3518,11 @@
                         up.jobExp = sanitizeNumber(savedUp.jobExp, 0, 0);
                     }
                 });
+            }
+
+            const loadedTokenUpgrade = upgrades.find(u => u.id === 'double_income_token');
+            if (loadedTokenUpgrade) {
+                totalDoubleIncomeTokensPurchased = Math.max(totalDoubleIncomeTokensPurchased, loadedTokenUpgrade.level);
             }
 
             if (Array.isArray(parsedData.prestigeUpgradeLevels)) {
@@ -3581,7 +3597,8 @@
     // Format: { version: 'vX.Y.Z', date: 'YYYY-MM-DD', changes: ['Change one.', 'Change two.'] }
     const CHANGELOG = [
         { version: 'v2.1.1', date: '17.10.2026', changes: [
-            'Added new tiers to Player Level Reached, TT Earned Since Reset and Income Milestones achievement (over 140 total achievements now!).'
+            'Added new tiers to Player Level Reached, TT Earned Since Reset and Income Milestones achievement (over 140 total achievements now!).',
+            'Added 2 new stats for tracking Double Income Tokens purchased.'
         ] },
         { version: 'v2.1', date: '9.10.2026', changes: [
             'Added a \'Buy All\' button for Next Business goal (Thanks to Stworek for suggestion).',
@@ -4158,6 +4175,7 @@
         lifetimeEarnings = 0;
         totalTimePlayedAllTime = 0;
         totalPrestigesPerformed = 0;
+        totalDoubleIncomeTokensPurchased = 0;
         highestIncomePerSecond = 0;
         highestTotalEarnedInRun = 0;
         highestBusinessesOwnedInRun = 0;
@@ -4405,6 +4423,7 @@
             if (upgrade.type === 'consumable_double_income') {
                 const extendFrom = Math.max(game.playTimeSeconds, game.doubleIncomeExpiryPlayTime);
                 game.doubleIncomeExpiryPlayTime = extendFrom + DOUBLE_INCOME_DURATION_SECONDS;
+                totalDoubleIncomeTokensPurchased++;
                 if (upgrade.level >= 100000) {
                     const entry = ACHIEVEMENTS.find(a => a.id === 'secret_mystery_1');
                     if (entry) entry.unlocked[4] = true;
@@ -5144,6 +5163,9 @@
         document.getElementById('stat-total-prestiges-performed').innerText = totalPrestigesPerformed;
         document.getElementById('stat-collections-completed').innerText = `${getCompletedCollectionsCount()} / ${COLLECTIONS.length}`;
         document.getElementById('stat-collections-completed-best').innerText = highestCollectionsCompletedInRun;
+        const doubleIncomeTokenUpgrade = upgrades.find(u => u.id === 'double_income_token');
+        document.getElementById('stat-double-income-tokens-run').innerText = (doubleIncomeTokenUpgrade ? doubleIncomeTokenUpgrade.level : 0).toLocaleString('en-US');
+        document.getElementById('stat-double-income-tokens-all-time').innerText = totalDoubleIncomeTokensPurchased.toLocaleString('en-US');
         document.getElementById('stat-next-goal').innerText = cheapestUnowned
             ? `${cheapestUnowned.name} - ${formatTT(getBusinessPrice(cheapestUnowned))} TT`
             : 'All businesses owned!';
