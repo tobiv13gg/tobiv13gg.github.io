@@ -113,6 +113,74 @@
             --border-color: #1a2830;
         }
 
+        body[data-theme="matrix"] {
+            --bg-color: #000a03;
+            --panel-bg: #06140a;
+            --panel-bg-alt: #040e07;
+            --accent-color: #00ff41;
+            --accent-color-dark: #00b82e;
+            --accent-pink: #a8ffc4;
+            --accent-cyan: #00e8a0;
+            --accent-gold: #c8f542;
+            --accent-orange: #86d44a;
+            --accent-super: #4dffb8;
+            --danger-color: #ff3b3b;
+            --text-color: #d2ffe0;
+            --text-muted: #5f9171;
+            --border-color: #0f2e19;
+        }
+
+        body[data-theme="cyberpunk"] {
+            --bg-color: #09090d;
+            --panel-bg: #14141b;
+            --panel-bg-alt: #0e0e14;
+            --accent-color: #fcee0a;
+            --accent-color-dark: #c4b800;
+            --accent-pink: #ff003c;
+            --accent-cyan: #00f0ff;
+            --accent-gold: #ffd000;
+            --accent-orange: #ff6a00;
+            --accent-super: #9d6bff;
+            --danger-color: #ff2a2a;
+            --text-color: #f6f5e8;
+            --text-muted: #8c8a74;
+            --border-color: #2b2a1b;
+        }
+
+        body[data-theme="edgerunners-1"] {
+            --bg-color: #040a12;
+            --panel-bg: #0b1822;
+            --panel-bg-alt: #07111a;
+            --accent-color: #19f5d0;
+            --accent-color-dark: #0fb89c;
+            --accent-pink: #ff2e8a;
+            --accent-cyan: #4cc9ff;
+            --accent-gold: #fff23a;
+            --accent-orange: #ff7a1a;
+            --accent-super: #b967ff;
+            --danger-color: #ff3b3b;
+            --text-color: #e6fbff;
+            --text-muted: #6f9aa8;
+            --border-color: #16303c;
+        }
+
+        body[data-theme="edgerunners-2"] {
+            --bg-color: #06050f;
+            --panel-bg: #120f2b;
+            --panel-bg-alt: #0d0b22;
+            --accent-color: #8b5cff;
+            --accent-color-dark: #6238d6;
+            --accent-pink: #ff3d9a;
+            --accent-cyan: #00f5ff;
+            --accent-gold: #ffe14d;
+            --accent-orange: #ff7a3d;
+            --accent-super: #ff4fd8;
+            --danger-color: #ff3b3b;
+            --text-color: #eeeaff;
+            --text-muted: #8b84b3;
+            --border-color: #272152;
+        }
+
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.001ms !important;
@@ -255,10 +323,64 @@
             box-shadow: 0 0 8px rgba(151, 251, 0, 0.5);
         }
 
-        .transparency-btn {
+        .pin-btn {
             position: absolute;
             top: 8px;
             right: 36px;
+            z-index: 15;
+            width: 22px;
+            height: 22px;
+            padding: 0;
+            border: 1.5px solid var(--text-muted);
+            border-radius: 4px;
+            background: var(--panel-bg);
+            color: var(--text-color);
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            transition: color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .pin-btn:hover {
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 8px rgba(151, 251, 0, 0.5);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 62px;
+            z-index: 15;
+            width: 22px;
+            height: 22px;
+            padding: 0;
+            border: 1.5px solid var(--text-muted);
+            border-radius: 4px;
+            background: var(--panel-bg);
+            color: var(--text-color);
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            transition: color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .close-btn:hover {
+            color: var(--danger-color);
+            border-color: var(--danger-color);
+            box-shadow: 0 0 8px rgba(255, 59, 59, 0.5);
+        }
+
+        .transparency-btn {
+            position: absolute;
+            top: 8px;
+            right: 88px;
             z-index: 15;
             width: 22px;
             height: 22px;
@@ -300,6 +422,8 @@
         }
 
         .game-container.minimized.transparent .minimize-btn,
+        .game-container.minimized.transparent .pin-btn,
+        .game-container.minimized.transparent .close-btn,
         .game-container.minimized.transparent .transparency-btn {
             background: transparent;
             border-color: transparent;
@@ -307,6 +431,8 @@
         }
 
         .game-container.minimized.transparent .minimize-btn:hover,
+        .game-container.minimized.transparent .pin-btn:hover,
+        .game-container.minimized.transparent .close-btn:hover,
         .game-container.minimized.transparent .transparency-btn:hover {
             opacity: 1;
             background: var(--panel-bg-alt);
@@ -321,7 +447,7 @@
             justify-content: center;
             gap: 8px;
             cursor: grab;
-            padding: 0 30px 0 10px;
+            padding: 0 118px 0 10px;
             box-sizing: border-box;
             touch-action: none;
         }
@@ -349,7 +475,7 @@
         }
 
         .game-container.minimized {
-            width: 220px !important;
+            width: 280px !important;
             height: 44px !important;
             max-width: none;
         }
@@ -2168,6 +2294,8 @@
 <div class="game-container" id="game-container" tabindex="-1">
     <div class="resize-handle" id="resize-handle" title="Drag to resize"></div>
     <button class="minimize-btn" id="minimize-btn" title="Minimize" onclick="toggleMinimized()">&minus;</button>
+    <button class="pin-btn" id="pin-btn" title="Pin (keep visible, return control to the game)" onclick="pinApp()"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M16 3a1 1 0 0 1 .7 1.7L15.4 6l1.6 5.3 1.7 1.7a1 1 0 0 1-.7 1.7H13v5.6a1 1 0 0 1-2 0v-5.6H6a1 1 0 0 1-.7-1.7L7 11.3 8.6 6 7.3 4.7A1 1 0 0 1 8 3h8z"/></svg></button>
+    <button class="close-btn" id="close-btn" title="Hide (close the app window)" onclick="closeApp()"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
     <button class="transparency-btn" id="transparency-btn" title="Toggle Transparency" onclick="toggleTransparency()">&#9788;</button>
     <div class="minimized-view" id="minimized-view">
         <span class="minimized-label">TT</span>
@@ -2177,7 +2305,7 @@
     <div class="game-scroll-area">
     <div class="app-sticky-top">
     <header>
-        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v2.1.1</span></h1>
+        <h1>idle<span class="logo-accent">TT</span><span class="version-badge">v2.2</span></h1>
         <p class="subtitle" id="subtitle-text">Welcome, Player. Gotta keep grinding 😽</p>
     </header>
 
@@ -2478,6 +2606,22 @@
             <label class="settings-radio-row">
                 <input type="radio" name="color-theme" value="deep-freeze" id="settings-theme-deep-freeze" onchange="setColorTheme('deep-freeze')">
                 <span>Deep Freeze</span>
+            </label>
+            <label class="settings-radio-row">
+                <input type="radio" name="color-theme" value="matrix" id="settings-theme-matrix" onchange="setColorTheme('matrix')">
+                <span>Matrix</span>
+            </label>
+            <label class="settings-radio-row">
+                <input type="radio" name="color-theme" value="cyberpunk" id="settings-theme-cyberpunk" onchange="setColorTheme('cyberpunk')">
+                <span>Cyberpunk</span>
+            </label>
+            <label class="settings-radio-row">
+                <input type="radio" name="color-theme" value="edgerunners-1" id="settings-theme-edgerunners-1" onchange="setColorTheme('edgerunners-1')">
+                <span>Edge Runner</span>
+            </label>
+            <label class="settings-radio-row">
+                <input type="radio" name="color-theme" value="edgerunners-2" id="settings-theme-edgerunners-2" onchange="setColorTheme('edgerunners-2')">
+                <span>Edge Runner II</span>
             </label>
         </div>
     </div>
@@ -3356,7 +3500,7 @@
     const SOUND_SETTINGS_KEY = 'idle_tt_sound_settings';
     const NUMBER_FORMAT_KEY = 'idle_tt_number_format';
     const COLOR_THEME_KEY = 'idle_tt_color_theme';
-    const COLOR_THEMES = ['default', 'vice-night', 'blood-money', 'vice-gold', 'sandy-shores', 'deep-freeze'];
+    const COLOR_THEMES = ['default', 'vice-night', 'blood-money', 'vice-gold', 'sandy-shores', 'deep-freeze', 'matrix', 'cyberpunk', 'edgerunners-1', 'edgerunners-2'];
 
     async function storageSet(key, value) {
         if (window.storage && typeof window.storage.set === 'function') {
@@ -3596,6 +3740,10 @@
     // Add new entries at the TOP of this array (newest first).
     // Format: { version: 'vX.Y.Z', date: 'YYYY-MM-DD', changes: ['Change one.', 'Change two.'] }
     const CHANGELOG = [
+        { version: 'v2.2', date: '14.11.2026', changes: [
+            'Added 4 new themes.',
+            'Added new Pin and Close buttons (thanks to Kian for request).'
+        ] },
         { version: 'v2.1.1', date: '17.10.2026', changes: [
             'Added new tiers to Player Level Reached, TT Earned Since Reset and Income Milestones achievement (over 140 total achievements now!).',
             'Added 2 new stats for tracking Double Income Tokens purchased.'
@@ -4037,6 +4185,16 @@
         const btn = document.getElementById('minimize-btn');
         btn.title = 'Expand';
         btn.innerHTML = '&#9633;';
+    }
+
+    function closeApp() {
+        saveGame();
+        window.parent.postMessage({ type: 'close' }, '*');
+    }
+
+    function pinApp() {
+        saveGame();
+        window.parent.postMessage({ type: 'pin' }, '*');
     }
 
     const TRANSPARENCY_STATE_KEY = 'idle_tt_transparent';
@@ -5707,6 +5865,8 @@
     window.setNumberFormat = setNumberFormat;
     window.setColorTheme = setColorTheme;
     window.toggleMinimized = toggleMinimized;
+    window.pinApp = pinApp;
+    window.closeApp = closeApp;
     window.toggleTransparency = toggleTransparency;
     window.toggleChangelogEntry = toggleChangelogEntry;
     window.confirmHardReset = confirmHardReset;
